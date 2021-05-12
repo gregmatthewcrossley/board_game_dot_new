@@ -7,14 +7,15 @@ puts "---------------"
 print "Enter your keyword: "
 
 begin  
-  instance = TwentyOneDots.new(gets.chomp)
+  input_keyword = gets.chomp
+  instance = TwentyOneDots.new(input_keyword)
 rescue ArgumentError => e
-  puts "Sorry, can't create a game with this keyword because " + e.message
+  puts "Sorry, can't create a game with '" + input_keyword + "' because " + e.message
   puts
   exit
 end
 
 puts
-puts "You entered '" + instance.keyword + "'"
-puts instance.wikipedia_page_text
+puts "Found Wikipedia page entitled '" + instance.wikipedia_page_title + "':"
+puts instance.entities
 puts
