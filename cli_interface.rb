@@ -1,21 +1,33 @@
 # to run in terminal: ruby cli_interface.rb
 
-require_relative 'twenty_one_dots'
+require_relative 'card_question_set'
 puts
-puts "Twenty One Dots"
+puts "Card Questions"
 puts "---------------"
-print "Enter your keyword: "
+print "Enter your topic: "
 
 begin  
-  input_keyword = gets.chomp
-  instance = TwentyOneDots.new(input_keyword)
+  input_topic = gets.chomp
+  question_set = CardQuestionSet.new(input_topic)
 rescue ArgumentError => e
-  puts "Sorry, can't create a game with '" + input_keyword + "' because " + e.message
+  puts "Sorry, can't create questions for '" + input_topic + "' because " + e.message
   puts
   exit
 end
 
 puts
-puts "Found Wikipedia page entitled '" + instance.wikipedia_page_title + "':"
-puts instance.entities
-puts
+puts "Found Wikipedia page entitled '" + question_set.wikipedia_page_title + "'. Generating questions..."
+
+question_set.generate
+
+question_set.questions_and_answers.each do |q_and_a|
+  puts q_and_a[:question]
+  puts "  (a) " + q_and_a[:choices][0]
+  puts "  (b) " + q_and_a[:choices][1]
+  puts "  (c) " + q_and_a[:choices][2]
+  puts "  (d) " + q_and_a[:choices][3]
+  puts 
+  puts "   answer: " + q_and_a[:answer]
+  puts
+  puts
+end
