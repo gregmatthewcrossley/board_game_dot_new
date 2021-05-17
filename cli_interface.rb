@@ -21,6 +21,7 @@ puts "Found Wikipedia page entitled '" + question_set.wikipedia_page_title + "'.
 question_set.generate
 
 question_set.questions_and_answers.each do |q_and_a|
+  # TO DO: generalize this (any number of questions)
   puts q_and_a[:question]
   puts "  (a) " + q_and_a[:choices][0]
   puts "  (b) " + q_and_a[:choices][1]
