@@ -1,14 +1,17 @@
 require 'pry' # for debugging
-require 'date' # for generating plausable date substitutes
+
 require 'wikipedia' # for retreiving Wikipedia articles
 require 'google/cloud/language' # for analyzing text
+require 'date' # for generating plausable date substitutes
+require 'active_support/inflector' # for pluralization / singularization of nouns
 ENV["GOOGLE_APPLICATION_CREDENTIALS"] = "google_application_credentials.json" 
 
 class CardQuestionSet
 
   MINIMUM_WORDS_FOR_A_PAGE = 1000
   NUMBER_OF_QUESTIONS = 100
-  QUESTION_WORD_LIMIT = 50
+  MINIMUM_CHARACTERS_FOR_A_QUESTION = 75
+  MAXIMUM_CHARACTERS_FOR_A_QUESTION = 300
   NUMBER_OF_MULTIPLE_CHOICES = 4
   PLAUSABLE_YEAR_RANGE = 30 # range of years for plausable dates
   BLANK_STRING = '________'
@@ -18,7 +21,7 @@ class CardQuestionSet
 
   def initialize(topic)
     # save the topic
-    @topic = topic
+    @topic = topic.split().map(&:capitalize).join(' ')
 
     # try to find a coresponding Wikipedia page
     Wikipedia.find(@topic).tap do |page|
@@ -66,7 +69,7 @@ class CardQuestionSet
         :choices  => ([entity[:name]] + entity[:plausable_substitutes]).shuffle,
         :answer   => entity[:name]
       }
-    }
+    }.shuffle
   end
 
 
@@ -102,12 +105,20 @@ class CardQuestionSet
       }).to_h
   end
 
+  def two_sentences_missing_a_space?(string)
+    # The Wikipedia API sometimes returns two sentences without a space
+    # between them (ie when paragraphs end and a new one starts). 
+    # This method is used to detect such errors
+    /[A-Za-z][.][A-Za-z]/.match(string) ? true : false
+  end
+
   def parse_entities
     @entities = @analyzed_text[:entities].map { |entity| 
         entity
           .select { |attribute| entity_attribute_whitelist.include? attribute }
-      }.select {|entity| entity_type_whitelist.include? entity[:type] }
-      .uniq { |entity| entity[:name] }
+      }.select { |entity| entity_type_whitelist.include? entity[:type] }
+      .uniq { |entity| entity[:name] } # remove any duplicates
+      .reject { |entity| two_sentences_missing_a_space?(entity[:name]) } # remove any double words with periods and no spaces (ie "end.But")
     # determine whether the entity is a proper noun
     @entities.each do |entity|
       entity[:proper_noun?] = (entity[:mentions].first[:type] == :PROPER)
@@ -117,14 +128,26 @@ class CardQuestionSet
   end
 
   def parse_sentences
-    # @analyzed_text[:sentences].each do |sentence|
-    #   binding.pry if sentence[:text][:content].include?("Luby")
-    # end
     @sentences = @analyzed_text[:sentences]
       .map { |sentence| sentence[:text][:content]} # get the sentences
       .select {|sentence| sentence[-1] == "."} # discard section titles (ie sentences without a period at the end)
-      .select {|sentence| sentence.split.count <= QUESTION_WORD_LIMIT } # discard long sentences
+      .select {|sentence| sentence.split('').count >= MINIMUM_CHARACTERS_FOR_A_QUESTION } # discard short sentences
+      .select {|sentence| sentence.split('').count <= MAXIMUM_CHARACTERS_FOR_A_QUESTION } # discard long sentences
       .select {|sentence| sentence.split("=\n").count == 1 } # remove any Wikipedia headers (ie '== Illness and death ==')
+    # fix any double-sentences with missing spaces between them (ie "... ever after.And then, the big bad wolf...")
+    @sentences = @sentences.map { |sentence|
+      if two_sentences_missing_a_space?(sentence) # if this sentence is a double sentence with missing spaces between them
+        start_of_second_sentence = /[.]\S+/.match(sentence).to_s # find the start of the second sentence
+        two_sentences = sentence.split(start_of_second_sentence) # split the sentences
+        return sentence unless two_sentences.count == 2 # in case the split returned just one sentence
+        two_sentences[0] = two_sentences[0] + "." # add a period back into the end of the first sentence
+        two_sentences[1] = start_of_second_sentence.gsub('.','') + two_sentences[1]
+        # split the sentences into two
+        two_sentences # an array of the two sentences
+      else
+        sentence
+      end
+    }.flatten # flatten any two-sentence arrays into the main @sentences array
   end
 
   def generate_plausable_entity_substitutes
@@ -165,6 +188,13 @@ class CardQuestionSet
       string.split(' ').last.split('').map(&:to_i).sum > 0 # check that it is just numbers
     }
 
+    date_string_is_a_month_and_a_day = Proc.new { |string| 
+      string.split(' ').count == 2 && # the string is two words separated by a space
+      Date::MONTHNAMES.compact.include?(string.split(' ').first) && # the first word is a month
+      string.split(' ').last.split('').count <= 2 && # check that it is 4 or fewer characters
+      string.split(' ').last.split('').map(&:to_i).sum > 0 # check that it is just numbers
+    }
+
     date_string_is_a_full_date = Proc.new { |string| 
       begin
         Date.parse(string).is_a? Date
@@ -188,6 +218,13 @@ class CardQuestionSet
         .map { |d| d.strftime("%B %Y") }
         .uniq
         .sample(NUMBER_OF_MULTIPLE_CHOICES - 1)
+    when date_string_is_a_month_and_a_day
+      Array.new(100)
+        .map { |i| Date.parse(date_string) + rand(-PLAUSABLE_YEAR_RANGE*365..1) }
+        .select { |d| d != Date.parse(date_string) }
+        .map { |d| d.strftime("%B %-d") }
+        .uniq
+        .sample(NUMBER_OF_MULTIPLE_CHOICES - 1)
     when date_string_is_a_full_date
       Array.new(100)
         .map { |i| Date.parse(date_string) + rand(-PLAUSABLE_YEAR_RANGE*365..1) }
@@ -201,22 +238,45 @@ class CardQuestionSet
   end
 
   def all_entity_names_except(name, type, proper_noun)
-    @entities.select { |entity|
+    all_entity_names = @entities.select { |entity|
       entity[:name] != name && # drop the entity if it has the same name
       entity[:type] == type && # drop the entity unless it is the same type
       entity[:proper_noun?] == proper_noun # only keep either proper or regular nouns
-    }.map { |entity| entity[:name] }.uniq # remove duplicates
-    .map { |name| 
-      if proper_noun
-        if name.split(', ').count == 2 # reverse any names with commas (ie 'Smith, John')
-          name.split(', ').map(&:capitalize).reverse.join(' ')
+    }.map { |entity| 
+      entity[:name]
+    }.select { |entity_name| # make sure the name isn't just all numbers (ie an ISBN number like 978-0-452-00849-6)
+      /[A-Za-z]/.match(entity_name)
+    }.map { |entity_name| 
+      if proper_noun # match capitalization to noun type
+        if entity_name.split(', ').count == 2 # reverse any names with commas (ie 'Smith, John')
+          entity_name.split(', ').map(&:capitalize).reverse.join(' ')
         else
-          name.split(' ').map(&:capitalize).join(' ')
+          entity_name.split(' ').map(&:capitalize).join(' ')
         end
       else
-        name.downcase
-      end # match capitalization to noun type
+        entity_name.downcase
+      end 
+    }.map { |entity_name|
+      if is_plural?(name)
+        entity_name.pluralize
+      else
+        entity_name.singularize
+      end
+    }.uniq # remove duplicates
+
+    all_entity_names.reject { |entity_name| # make sure each entity name isn't a substring of another
+      (all_entity_names - [entity_name]).map { |n|
+        n.include? entity_name
+      }.any?
     }
+  end
+
+  def is_singular?(noun)
+    noun.singularize == noun
+  end
+
+  def is_plural?(noun)
+    noun.pluralize == noun
   end
 
   def generate_question_phrases
@@ -238,7 +298,16 @@ class CardQuestionSet
   end
 
   def sentence_for(name)
-    @sentences.select { |sentence| sentence.include? name }.sample
+    name_variations = [
+      ". #{name.capitalize} ", # start of sentence
+      " #{name} ",             # mid sentence
+      " #{name}.",             # end of sentene
+    ]
+    @sentences.select { |sentence|
+      name_variations.map { |variation|
+        sentence.include? variation
+      }.any?
+    }.sample
   end
 
   def cull_questions

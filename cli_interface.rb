@@ -20,13 +20,12 @@ puts "Found Wikipedia page entitled '" + question_set.wikipedia_page_title + "'.
 
 question_set.generate
 
-question_set.questions_and_answers.each do |q_and_a|
+question_set.questions_and_answers.each_with_index do |q_and_a, i|
   # TO DO: generalize this (any number of questions)
-  puts q_and_a[:question]
-  puts "  (a) " + q_and_a[:choices][0]
-  puts "  (b) " + q_and_a[:choices][1]
-  puts "  (c) " + q_and_a[:choices][2]
-  puts "  (d) " + q_and_a[:choices][3]
+  puts "(#{(i + 1).to_s}) #{q_and_a[:question]}"
+  ("a".."z").to_a[0..(q_and_a[:choices].count - 1)].each_with_index do |letter, i|
+    puts "  (#{letter}) " + q_and_a[:choices][i]
+  end
   puts 
   puts "   answer: " + q_and_a[:answer]
   puts
