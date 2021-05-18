@@ -1,12 +1,26 @@
-require 'pry' # for debugging
+=begin
 
-require 'wikipedia' # for retreiving Wikipedia articles
-require 'google/cloud/language' # for analyzing text
-require 'date' # for generating plausable date substitutes
-require 'active_support/inflector' # for pluralization / singularization of nouns
-ENV["GOOGLE_APPLICATION_CREDENTIALS"] = "google_application_credentials.json" 
+to run in terminal: 
+
+pry -r ./card_question_set.rb -e CardQuestionSet.cli
+
+=end
+
+# load gems from our gemfile
+require 'rubygems'
+require 'bundler/setup'
+Bundler.require(:default)
+
+# load the CLI module
+require_relative 'card_question_set_cli_interface_module'
+
+# save the google app credentials as an environment variable, if avaliable
+ENV["GOOGLE_APPLICATION_CREDENTIALS"] ||= "google_application_credentials.json" 
+
 
 class CardQuestionSet
+
+  extend CardQuestionSetCliInterface
 
   MINIMUM_WORDS_FOR_A_PAGE = 1000
   NUMBER_OF_QUESTIONS = 100
