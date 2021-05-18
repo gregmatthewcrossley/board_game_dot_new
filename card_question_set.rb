@@ -117,11 +117,12 @@ class CardQuestionSet
       },
       features: {
         classify_text:              false,
-        extract_document_sentiment: false,
+        extract_document_sentiment: true,
         extract_entities:           true,
         extract_entity_sentiment:   false,
         extract_syntax:             true
       }).to_h
+    binding.pry
   end
 
   def two_sentences_missing_a_space?(string)
