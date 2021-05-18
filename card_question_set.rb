@@ -23,7 +23,7 @@ class CardQuestionSet
   extend CardQuestionSetCliInterface
 
   MINIMUM_WORDS_FOR_A_PAGE = 1000
-  NUMBER_OF_QUESTIONS = 100
+  DEFAULT_NUMBER_OF_QUESTIONS = 100
   MINIMUM_CHARACTERS_FOR_A_QUESTION = 75
   MAXIMUM_CHARACTERS_FOR_A_QUESTION = 300
   NUMBER_OF_MULTIPLE_CHOICES = 4
@@ -34,6 +34,8 @@ class CardQuestionSet
   alias_method :all, :entities
 
   def initialize(topic)
+    raise ArgumentError, 'must pass a topic (string) when initializing' unless topic.is_a?(String)
+
     # save the topic
     @topic = topic.split().map(&:capitalize).join(' ')
 
@@ -52,7 +54,7 @@ class CardQuestionSet
 
   end
 
-  def generate
+  def generate(count: DEFAULT_NUMBER_OF_QUESTIONS)
 
     # analyze the page's text
     analyze_text
@@ -70,7 +72,10 @@ class CardQuestionSet
     generate_question_phrases
 
     # cull to the number of requested questions
-    cull_questions
+    cull_questions_to(count)
+
+    # return the card question set, now generated
+    return self
 
   end
 
@@ -303,11 +308,7 @@ class CardQuestionSet
   def sentence_with_blank_for(name)
     sentence = sentence_for(name)
     return nil if sentence_for(name).nil? # skip any blank sentences
-    begin
-      return nil if sentence_for(name).gsub('-','~~~~~').delete(name.gsub('-','~~~~~')).split('').count == 0 # skip sentences only containing the entity name (the ~~~~ is to make sure there aren't any dashes in the string, which messed up the delete() method)
-    rescue ArgumentError
-      binding.pry
-    end
+    return nil if sentence_for(name).gsub('-','~~~~~').delete(name.gsub('-','~~~~~')).split('').count == 0 # skip sentences only containing the entity name (the ~~~~ is to make sure there aren't any dashes in the string, which messed up the delete() method)
     sentence_for(name).gsub(name, BLANK_STRING)
   end
 
@@ -324,8 +325,8 @@ class CardQuestionSet
     }.sample
   end
 
-  def cull_questions
-    @entities = @entities.sample(NUMBER_OF_QUESTIONS)
+  def cull_questions_to(count)
+    @entities = @entities.sample(count)
   end
 
   def entity_type_whitelist

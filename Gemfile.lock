@@ -65,6 +65,7 @@ GEM
     jwt (2.2.3)
     memoist (0.16.2)
     method_source (1.0.0)
+    minitest (5.14.4)
     multi_json (1.15.0)
     multipart-post (2.1.1)
     os (1.1.1)
@@ -90,6 +91,7 @@ DEPENDENCIES
   date
   google-cloud-language
   i18n
+  minitest
   pry
   wikipedia-client
 
