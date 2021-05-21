@@ -21,16 +21,20 @@ puts board_game.name.gsub(/./, '-')
 puts board_game.description
 puts
 
-# Generate and show image URLs
+# Show the game board
 puts
-puts "Generating image URLs ..."
-puts
-puts "Main image: #{board_game.game_box.image_url}"
-puts
-puts "Game Pieces: "
-board_game.game_pieces.each do |p|
-  puts p
-end
+board_game.game_board.print
+
+# # Generate and show image URLs
+# puts
+# puts "Generating image URLs ..."
+# puts
+# puts "Main image: #{board_game.game_box.image_url}"
+# puts
+# puts "Game Pieces: "
+# board_game.game_pieces.each do |p|
+#   puts p
+# end
 
 # # Generate and show question cards
 # puts
