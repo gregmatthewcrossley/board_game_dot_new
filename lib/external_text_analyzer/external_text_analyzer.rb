@@ -58,16 +58,16 @@ module ExternalTextAnalyzer
 
   class GoogleNaturalLanguage
 
-    # save the location of the JSON file containing the app's 
-    # google app credentials as an environment variable
-    ENV["GOOGLE_APPLICATION_CREDENTIALS"] = "google_application_credentials.json" 
-
     def initialize(text)
       raise ArgumentError, 'must pass text (String) when initializing' unless text.is_a?(String)
       @text = text
 
       # initiate Google Cloud Language client
-      @client = Google::Cloud::Language.language_service
+      begin
+        @client = Google::Cloud::Language.language_service
+      rescue RuntimeError => e
+        raise e, "#{e.message} \n\nHint: check to see whether an environment variable called 'GOOGLE_APPLICATION_CREDENTIALS' contains a path to a JSON file with those credentials."
+      end
     end
 
     def analysis

@@ -1,29 +1,12 @@
-# pry -r './board_game.rb' -e 'BoardGame.cli'
-
-# load gems from our gemfile
-require 'rubygems'
-require 'bundler/setup'
-Bundler.require(:default)
-
-# load the CLI module
-require_relative 'board_game_cli_module'
-
-# load the name and description analyzer
-require_relative 'name_and_description'
-
-# load the text sourcer module
-require_relative 'external_text_source'
-
-# load the text analyser module
-require_relative 'external_text_analyzer'
-
-# load the card set class
-require_relative 'card_set'
-
 class BoardGame
 
-  # add the CLI
-  extend BoardGameCli
+  # load the gems in 'Gemfile'
+  require 'bundler/setup'
+  Bundler.require(:default)
+
+  # load all the other ruby files
+  require 'require_all'
+  require_all '../lib/**/*.rb'
 
   attr_reader :topic, :name, :description 
 
@@ -52,6 +35,14 @@ class BoardGame
 
   def chance_cards 
     @chance_cards ||= CardSet::Chance.new(@analyzed_text).generate
+  end
+
+  def game_box
+    @game_box ||= GameBox.new(@topic)
+  end
+
+  def game_pieces
+    @game_pieces ||= GamePieces.new(@analyzed_text).all
   end
 
 end
