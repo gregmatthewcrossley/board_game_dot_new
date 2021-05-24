@@ -9,6 +9,7 @@ gem 'require_all'
 
 # debugging
 gem 'pry'
+gem 'terminal-table'
 
 # for core functionality
 gem 'wikipedia-client', require: 'wikipedia' # for retreiving Wikipedia articles

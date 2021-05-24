@@ -29,12 +29,8 @@ class BoardGame
     @analyzed_text = ExternalTextAnalyzer::GoogleNaturalLanguage.new(@text).analysis
   end
 
-  def question_cards
-    @question_cards ||= CardSet::Question.new(@analyzed_text).generate
-  end
-
-  def chance_cards 
-    @chance_cards ||= CardSet::Chance.new(@analyzed_text).generate
+  def game_board
+    @game_board ||= GameBoard.new
   end
 
   def game_box
@@ -43,6 +39,14 @@ class BoardGame
 
   def game_pieces
     @game_pieces ||= GamePieces.new(@analyzed_text).all
+  end
+
+  def question_cards
+    @question_cards ||= CardSet::Question.new(@analyzed_text).generate
+  end
+
+  def chance_cards 
+    @chance_cards ||= CardSet::Chance.new(@analyzed_text).generate
   end
 
 end

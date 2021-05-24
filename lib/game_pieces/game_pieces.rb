@@ -28,16 +28,14 @@ class GamePieces
     proper_noun_entities.each do |e|
       break if @all.count == NUMBER_OF_PIECES
       capitalized_name = e.string.split.map(&:capitalize).join(' ')
-      puts "looking up #{capitalized_name} ..."
       found_url = ExternalImageSource::WikipediaApi.new(capitalized_name).url rescue nil
       unless found_url.nil?
         @all << Struct.new(:name, :image_url).new(
-          name: e.string,
-          image_url: found_url
+          capitalized_name,
+          found_url
         )
       end
     end
-
   end
 
 end
