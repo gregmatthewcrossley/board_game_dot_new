@@ -5,8 +5,8 @@ class BoardGame
   Bundler.require(:default)
 
   # load all the other ruby files
-  require 'require_all'
-  require_all '../lib/**/*.rb'
+  require 'require_all' # https://github.com/jarmo/require_all
+  require_rel '../lib/**/*.rb'
 
   attr_reader :topic, :name, :description 
 

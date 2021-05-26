@@ -18,6 +18,9 @@ gem 'date' # for generating plausable date substitutes
 gem 'i18n'
 gem 'activesupport-inflector', require: 'active_support/inflector' # for pluralization / singularization of nouns
 
+# for web functionality
+gem "functions_framework", "~> 0.9"
+
 # for testing
 group :test do
   gem 'minitest'
