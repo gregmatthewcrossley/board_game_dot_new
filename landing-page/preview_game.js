@@ -1,31 +1,28 @@
-const topicForm = document.getElementById('topic-form');
+const previewButton = document.getElementById('preview-button');
 const topicField = document.getElementById('topic-field');
 const previewArea = document.getElementById('preview');
 const callToActionArea = document.getElementById('call-to-action');
 
-topicForm.addEventListener(
-  "submit", 
-  function(e){ 
-    callToActionArea.removeAttribute('style');
-    previewArea.textContent = 'working... ';
-
-    var xhr = new XMLHttpRequest();
-    xhr.withCredentials = true;
-    xhr.open('GET', '/functions/preview?topic='+encodeURIComponent(topicField.value));
-    xhr.onload = function() {
-      if (xhr.status === 200) {
-        // show the generatd game's name
-        previewArea.textContent = xhr.responseText;
-        // show the call to action (stripe checkout session creation form)
-        callToActionArea.setAttribute('style', 'display:block');
-      }
-      else {
-        alert('Request failed.  Returned status of ' + xhr.status);
-      }
-    };
-    xhr.send();
-
-    e.preventDefault();
+previewButton.addEventListener('click', function() {
+  // re-hide the call to action area, if shown
+  callToActionArea.removeAttribute('style');
+  // remove any content in the preview area, replace with a "working..." message
+  previewArea.textContent = 'working... ';
+  // send the topic to a google function to get the preview content
+  request_uri = '/functions/preview?topic='+encodeURIComponent(topicField.value);
+  fetch(request_uri)
+    .then(function (response) {
+      return response.json();
+    })
+    .then(function (board_game_preview) {
+      // add the generated game's name to the preview area
+      previewArea.textContent = board_game_preview.name;
+      // show the call to action (stripe checkout session creation form)
+      callToActionArea.setAttribute('style', 'display:block');
+    })
+    .catch(function (err) {
+        console.log("Something went wrong!", err);
+    });
   }
 );
 

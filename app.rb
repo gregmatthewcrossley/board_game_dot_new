@@ -5,7 +5,6 @@
 FunctionsFramework.on_startup do
   require "functions_framework"
   require_relative './lib/board_game'
-  # ENV["GOOGLE_APPLICATION_CREDENTIALS"] = "./google_application_credentials.json" 
 end
 
 # Given game parameters (topic, player count, game length), returns 
@@ -19,7 +18,9 @@ FunctionsFramework.http("generate_preview_content") do |request|
     # b.question_cards
     # b.chance_cards
   end
-  return board_game.name
+  return { 
+    name: board_game.name
+  }.to_json 
 end
 # http://localhost:8080/?topic=Rob+Ford
 
