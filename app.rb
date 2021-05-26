@@ -5,15 +5,43 @@
 FunctionsFramework.on_startup do
   require "functions_framework"
   require_relative './lib/board_game'
-  ENV["GOOGLE_APPLICATION_CREDENTIALS"] = "./google_application_credentials.json" 
+  # ENV["GOOGLE_APPLICATION_CREDENTIALS"] = "./google_application_credentials.json" 
 end
 
 # Given game parameters (topic, player count, game length), returns 
 # JS that appends the landing page with "preview" content for a given topic
 FunctionsFramework.http("generate_preview_content") do |request|
   topic = CGI.escape_html(request.params["topic"])
-  board_game = BoardGame.new(topic)
+  board_game = BoardGame.new(topic).tap do |b|
+    b.game_board
+    b.game_box
+    b.game_pieces
+    b.question_cards
+    b.chance_cards
+  end
   return board_game.name
+
+  def game_board
+    @game_board ||= GameBoard.new
+  end
+
+  def game_box
+    @game_box ||= GameBox.new(@topic)
+  end
+
+  def game_pieces
+    @game_pieces ||= GamePieces.new(@analyzed_text).all
+  end
+
+  def question_cards
+    @question_cards ||= CardSet::Question.new(@analyzed_text).generate
+  end
+
+  def chance_cards 
+    @chance_cards ||= CardSet::Chance.new(@analyzed_text).generate
+  end
+
+
 end
 # http://localhost:8080/?topic=Rob+Ford
 

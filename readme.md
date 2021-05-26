@@ -19,7 +19,7 @@ export GOOGLE_APPLICATION_CREDENTIALS="/Users/gmc/Code/21dots/google_application
 bundle exec functions-framework-ruby --target generate_preview_content
 ```
 
-### To deploy a function
+### To deploy one function
 ```bash
 gcloud functions deploy 'Generate Preview Content' \
     --project=pure-lantern-313313 \
@@ -28,6 +28,15 @@ gcloud functions deploy 'Generate Preview Content' \
     --entry-point=generate_preview_content
 ```
 
+### To Deploy all functions
+```bash
+./deploy_functions.sh
+```
+
+### To Deploy all front-end code
+```bash
+./deploy_landing_page.sh
+```
 
 ## Infrastructure
 For the most part, this app uses Google Cloud services. 
@@ -47,3 +56,5 @@ The backend logic (ie the Ruby code that generates the game content) is broken d
 ## App Dependencies
 The core functionality of the app relies on two APIs - Wikipedia (for raw text and image content) and Google Natural Language (for parsing and contextualizing the text content).
 
+## GOOGLe API key environment variables
+Need to be set locally (ie for CLI or testing) but when run on Google Functions, not neccesary, as they are inferred from the account running the function
