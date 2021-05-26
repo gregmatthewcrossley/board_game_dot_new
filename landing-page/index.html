@@ -3,11 +3,18 @@
   <head>
     <!-- name -->
     <title>boardgame.new</title>
+
     <!-- favicons -->
     <link rel="icon" href="/favicon.ico"><!-- 32×32 -->
     <link rel="icon" href="/icon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="/apple-touch-icon.png"><!-- 180×180 -->
     <link rel="manifest" href="/manifest.webmanifest">
+
+    <!-- stylesheet -->
+    <link rel="stylesheet" href="main.css">
+
+    <!-- Stripe's JS Library -->
+    <script src="https://js.stripe.com/v3/"></script>
   </head>
   <body>
     <h1>boardgame.new</h1>
@@ -18,6 +25,17 @@
     <section id="preview">
       
     </section>
-    <script src="https://boardgame.new/preview_game.js"></script>
+
+    <section id="call-to-action">
+      <p>Want to buy? It's only $5!</p>
+      <button id="checkout-button">Buy</button>
+    </section>
+
+    <!-- Preview Script -->
+    <script src="preview_game.js"></script>
+    <!-- Stripe Checkout Script -->
+    <script src="stripe_checkout.js"></script>
+
   </body>
 </html>
+

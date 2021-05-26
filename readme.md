@@ -16,15 +16,17 @@ export GOOGLE_APPLICATION_CREDENTIALS="/Users/gmc/Code/21dots/google_application
 
 ### To run a function locally
 ```bash
-bundle exec functions-framework-ruby --target generate_preview_content
+bundle exec functions-framework-ruby --target create_stripe_checkout_session
+http://localhost:8080?topic=Rob+Ford
 ```
 
 ### To deploy one function
 ```bash
-gcloud functions deploy 'Generate Preview Content' \
+gcloud functions deploy preview \
     --project=pure-lantern-313313 \
     --runtime=ruby27 \
     --trigger-http \
+    --allow-unauthenticated \
     --entry-point=generate_preview_content
 ```
 

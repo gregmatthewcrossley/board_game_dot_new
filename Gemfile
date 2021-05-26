@@ -18,8 +18,11 @@ gem 'date' # for generating plausable date substitutes
 gem 'i18n'
 gem 'activesupport-inflector', require: 'active_support/inflector' # for pluralization / singularization of nouns
 
-# for web functionality
+# for Google Cloud Functions
 gem "functions_framework", "~> 0.9"
+
+# for payment processing
+gem 'stripe'
 
 # for testing
 group :test do

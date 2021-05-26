@@ -13,35 +13,13 @@ end
 FunctionsFramework.http("generate_preview_content") do |request|
   topic = CGI.escape_html(request.params["topic"])
   board_game = BoardGame.new(topic).tap do |b|
-    b.game_board
-    b.game_box
-    b.game_pieces
-    b.question_cards
-    b.chance_cards
+    # b.game_board
+    # b.game_box
+    # b.game_pieces
+    # b.question_cards
+    # b.chance_cards
   end
   return board_game.name
-
-  def game_board
-    @game_board ||= GameBoard.new
-  end
-
-  def game_box
-    @game_box ||= GameBox.new(@topic)
-  end
-
-  def game_pieces
-    @game_pieces ||= GamePieces.new(@analyzed_text).all
-  end
-
-  def question_cards
-    @question_cards ||= CardSet::Question.new(@analyzed_text).generate
-  end
-
-  def chance_cards 
-    @chance_cards ||= CardSet::Chance.new(@analyzed_text).generate
-  end
-
-
 end
 # http://localhost:8080/?topic=Rob+Ford
 
@@ -49,7 +27,25 @@ end
 # the ID of a Stripe Checkout Session for use by Stipe Checkout on the 
 # client side
 FunctionsFramework.http("create_stripe_checkout_session") do |request|
-  "Create Stripe Checkout Session"
+  Stripe.api_key = "sk_test_4GeIsHLcOWrJJuLKhdecy4B4"
+  require 'json'
+
+  stripe_checkout_session = Stripe::Checkout::Session.create({
+    payment_method_types: ['card'],
+    line_items: [{
+      price: 'price_1IvT2wKPc8URRCXAFjGAPHnb', # see https://dashboard.stripe.com/products/prod_JYR2C1kMen7g2X
+      quantity: 1
+    }],
+    mode: 'payment',
+    metadata: {
+      topic: CGI.escape_html(request.params["topic"]),
+      expire_on: (Date.today + 14).to_s
+    },
+    success_url: 'https://boardgame.new/success.html',
+    cancel_url:  'https://boardgame.new/cancel.html'
+  })
+  
+  return { id: stripe_checkout_session.id }.to_json
 end
 
 # Given game parameters (topic, player count, game length), and an
