@@ -40,10 +40,11 @@ FunctionsFramework.http("create_stripe_checkout_session") do |request|
     mode: 'payment',
     metadata: {
       topic: CGI.escape_html(request.params["topic"]),
-      expire_on: (Date.today + 14).to_s
+      download_url: "***", # write a method to generate an encrypted URL
+      expires_on: (Date.today + 14).to_s
     },
-    success_url: 'https://boardgame.new/success.html',
-    cancel_url:  'https://boardgame.new/cancel.html'
+    success_url: 'https://boardgame.new/success.html?stripe_checkout_session_id={CHECKOUT_SESSION_ID}"',
+    cancel_url:  'https://boardgame.new'
   })
   
   return { id: stripe_checkout_session.id }.to_json

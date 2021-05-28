@@ -1,5 +1,8 @@
 class GameBoard
 
+  require_rel './pdf/game_board_pdf_generator.rb'
+  include GameBoardPdfGenerator
+
   require 'terminal-table'
 
   PLACE_COUNT = 50
@@ -10,19 +13,15 @@ class GameBoard
   TOO_CLOSE = 2
   TOO_FAR = (PLACE_COUNT / 10).to_i
 
-  # time_per_regular_turn = 10
-  # chance_delta = 20
-  # question_delta = 20
-  # question_odds = 0.5
+  def initialize(analysis_result)
+    # validate the analysis_result
+    raise ArgumentError, "must pass an ExternalTextAnalyzer::AnalysisResult" unless analysis_result.is_a?(ExternalTextAnalyzer::AnalysisResult)
+    @analysis_result = analysis_result
+  end
 
-  def initialize()
-
+  def generate
     # create places array
     @places = (1..PLACE_COUNT).map { |i| [i, :blank]}.to_h
-
-    def blank_place_indicies
-      @places.select { |i, v| v == :blank}.map { |i, v| i }
-    end
 
     # add chances
     blank_place_indicies.sample(CHANCE_PLACE_COUNT).each do |i|
@@ -62,6 +61,8 @@ class GameBoard
       end
     end
 
+    return self
+
   end
 
   def map
@@ -91,6 +92,12 @@ class GameBoard
 
   end
 
-end
 
-# pry -r './game_board.rb' -e 'GameBoard.new.print'
+  private
+
+
+  def blank_place_indicies
+    @places.select { |i, v| v == :blank}.map { |i, v| i }
+  end
+
+end

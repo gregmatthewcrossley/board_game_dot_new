@@ -3,6 +3,9 @@ const stripe = Stripe('pk_test_7tyV8ujlWRgxEbCtm8n1G4wb');
 const checkoutButton = document.getElementById('checkout-button');
 
 checkoutButton.addEventListener('click', function() {
+  // TO-DO: send a request to 
+
+
   // Create a new Checkout Session using the Google Cloud Function `create_stripe_checkout_session`
   request_uri = '/functions/checkout?topic='+encodeURIComponent(topicField.value);
   fetch(request_uri, {method: 'POST'})

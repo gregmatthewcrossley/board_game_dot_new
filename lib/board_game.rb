@@ -29,24 +29,36 @@ class BoardGame
     @analyzed_text = ExternalTextAnalyzer::GoogleNaturalLanguage.new(@text).analysis
   end
 
+  def assembly_instructions
+    @assembly_instructions ||= AssemblyInstructions.new(@topic).generate
+  end
+
   def game_board
-    @game_board ||= GameBoard.new
+    @game_board ||= GameBoard.new(@analyzed_text).generate
   end
 
   def game_box
-    @game_box ||= GameBox.new(@topic)
-  end
-
-  def game_pieces
-    @game_pieces ||= GamePieces.new(@analyzed_text).all
+    @game_box ||= GameBox.new(@topic).generate
   end
 
   def question_cards
-    @question_cards ||= CardSet::Question.new(@analyzed_text).generate
+    @question_cards ||= QuestionCards.new(@analyzed_text).generate
   end
 
-  def chance_cards 
-    @chance_cards ||= CardSet::Chance.new(@analyzed_text).generate
+  def chance_cards
+    @chance_cards ||= ChanceCards.new(@analyzed_text).generate
   end
+
+  def game_instructions
+    @game_instructions ||= GameInstructions.new(@analyzed_text).generate
+  end
+
+  def game_money
+    @game_money ||= GameMoney.new(@topic).generate
+  end
+
+  def game_pieces
+    @game_pieces ||= GamePieces.new(@analyzed_text).generate
+  end  
 
 end
