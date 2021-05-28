@@ -15,7 +15,6 @@ class BoardGameTest < Minitest::Test
     "Rob Ford",
     "Rome",
     "World War Two",
-    "Dungeons and Dragons"
   ]
 
   # Initialization Tests
@@ -25,6 +24,10 @@ class BoardGameTest < Minitest::Test
 
   def test_game_creation_fails_on_obscure_topic
     assert_raises(ArgumentError) { BoardGame.new("buiwfubsaidfe78f7236fs7vbsds") }
+  end
+      
+  def test_game_creation_fails_on_topic_with_no_main_image
+    assert_raises(ArgumentError) { BoardGame.new("Dungeons and Dragons") }
   end
 
   def test_game_can_be_initiated

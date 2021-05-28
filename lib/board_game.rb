@@ -26,7 +26,10 @@ class BoardGame
     @text ||= ExternalTextSource::WikipediaApi.new(@topic).text
 
     # analyze the text
-    @analyzed_text = ExternalTextAnalyzer::GoogleNaturalLanguage.new(@text).analysis
+    @analyzed_text ||= ExternalTextAnalyzer::GoogleNaturalLanguage.new(@text).analysis
+    
+    # save or retrieve the main image URL
+    @main_image_url ||= ExternalImageSource::WikipediaApi.new(@topic).url
   end
 
   def assembly_instructions
@@ -38,7 +41,7 @@ class BoardGame
   end
 
   def game_box
-    @game_box ||= GameBox.new(@topic).generate
+    @game_box ||= GameBox.new(@main_image_url).generate
   end
 
   def question_cards
