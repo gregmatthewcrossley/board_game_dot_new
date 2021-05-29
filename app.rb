@@ -10,16 +10,26 @@ end
 # Given game parameters (topic, player count, game length), returns 
 # JS that appends the landing page with "preview" content for a given topic
 FunctionsFramework.http("generate_preview_content") do |request|
+  # sanitize the topic string provided by the user
   topic = CGI.escape_html(request.params["topic"])
-  board_game = BoardGame.new(topic).tap do |b|
-    # b.game_board
-    # b.game_box
-    # b.game_pieces
-    # b.question_cards
-    # b.chance_cards
-  end
-  return { 
-    name: board_game.name
+  # initialize and generate the board game
+  board_game = BoardGame.new(topic).generate
+  # save the board game PDF to Google Cloud Storage
+  game_file_name = "#{board_game.topic} Board Game Kit.pdf"
+  temp_file_path = "./.temp_pdf/#{game_file_name}"
+  board_game.pdf.save temp_file_path
+  Google::Cloud::Storage.new
+    .bucket('board-game-dot-new')
+    .create_file(
+      temp_file_path,
+      ".game_pdfs/#{board_game.topic}/#{game_file_name}", 
+      acl: "bucketOwnerFullControl"
+    )
+  File.delete temp_file_path
+  # return JSON with preview content
+  return {
+    name: board_game.name,
+    description: board_game.description
   }.to_json 
 end
 # http://localhost:8080/?topic=Rob+Ford

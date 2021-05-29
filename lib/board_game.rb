@@ -8,6 +8,19 @@ class BoardGame
   require 'require_all' # https://github.com/jarmo/require_all
   require_rel '../lib/**/*.rb'
 
+  include GamePdfGenerator
+
+  GAME_COMPONENTS = %w(
+    assembly_instructions
+    game_board
+    game_box
+    question_cards
+    chance_cards
+    game_instructions
+    game_money
+    game_pieces
+  )
+
   attr_reader :topic, :name, :description 
 
   def initialize(topic, text: nil)
@@ -62,6 +75,14 @@ class BoardGame
 
   def game_pieces
     @game_pieces ||= GamePieces.new(@analyzed_text).generate
-  end  
+  end 
+
+  def generate
+    # generates all game content
+    GAME_COMPONENTS.each do |component|
+      send component
+    end
+    return self
+  end 
 
 end

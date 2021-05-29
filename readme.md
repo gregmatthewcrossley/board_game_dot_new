@@ -10,13 +10,14 @@ To run tests locally:
 ruby board_game_test.rb
 ```
 
+To set the Google credential environment
 ```bash
-export GOOGLE_APPLICATION_CREDENTIALS="/Users/gmc/Code/21dots/google_application_credentials.json"
+export GOOGLE_APPLICATION_CREDENTIALS="/Users/gmc/Code/board_game_dot_new/google_application_credentials.json"
 ```
 
 ### To run a function locally
 ```bash
-bundle exec functions-framework-ruby --target create_stripe_checkout_session
+bundle exec functions-framework-ruby --target generate_preview_content
 http://localhost:8080?topic=Rob+Ford
 ```
 
