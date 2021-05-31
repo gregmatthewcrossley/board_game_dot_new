@@ -12,6 +12,11 @@
 # below:
 .git
 .gitignore
+cli
+landing-page
+test
+*.sh
+*.md
 
 node_modules
 #!include:.gitignore

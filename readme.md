@@ -1,13 +1,25 @@
 # Boardgame.new
 
-To use locally, via the command line:
+### To use locally, via the command line:
 ```bash
-pry -r './board_game.rb' -e 'BoardGame.cli'
+cd cli
+./run_cli.sh
 ```
 
-To run tests locally:
+### To run tests locally:
 ```bash
-ruby board_game_test.rb
+cd tests
+./run_tests.sh
+```
+
+### To Deploy all functions
+```bash
+./deploy_functions.sh
+```
+
+### To Deploy all front-end code
+```bash
+./deploy_landing_page.sh
 ```
 
 To set the Google credential environment
@@ -31,15 +43,6 @@ gcloud functions deploy preview \
     --entry-point=generate_preview_content
 ```
 
-### To Deploy all functions
-```bash
-./deploy_functions.sh
-```
-
-### To Deploy all front-end code
-```bash
-./deploy_landing_page.sh
-```
 
 ## Infrastructure
 For the most part, this app uses Google Cloud services. 

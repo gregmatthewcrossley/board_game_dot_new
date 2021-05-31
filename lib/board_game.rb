@@ -21,6 +21,8 @@ class BoardGame
     game_pieces
   )
 
+  # GAME_COMPONENTS = ["game_money"]
+
   attr_reader :topic, :name, :description 
 
   def initialize(topic, text: nil)
@@ -83,6 +85,6 @@ class BoardGame
       send component
     end
     return self
-  end 
+  end
 
 end

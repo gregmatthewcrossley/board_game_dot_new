@@ -1,30 +1,21 @@
 module GamePdfGenerator
 
-  def generate_pdf
-    build_pdf.tap do |p|
-      # add an 'open' method (for opening the PDF in Preview on MacOS)
-      p.define_singleton_method(:open) do
-        path_and_filename = "../.temp_pdf/game.pdf"
-        combined_pdf.save path_and_filename
-        system "open #{path_and_filename}"
-      end
-    end
-  end
-
-  def pdf
-    @pdf ||= generate_pdf
-  end
+  require_rel './pdf.rb'
+  include Pdf
 
 
   private
 
 
-  def build_pdf
-    combined_pdf = CombinePDF.new
-    BoardGame::GAME_COMPONENTS.each do |component|
-      combined_pdf << CombinePDF.parse(send(component).pdf.render)
+  def build_pdf(prawn_document)
+    generate
+    super.tap do |p|
+      BoardGame::GAME_COMPONENTS.each_with_index do |component, i|
+        send(component).generate_pdf(p)
+        # start a new page for the next component, unless this was the last component
+        p.start_new_page unless i == (BoardGame::GAME_COMPONENTS.count - 1)
+      end
     end
-    return combined_pdf
   end
 
 end

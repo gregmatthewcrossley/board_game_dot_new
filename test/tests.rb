@@ -202,18 +202,18 @@ class BoardGameTest < Minitest::Test
   #   end
   # end  
 
-  # def test_game_question_cards_pdf_can_be_generated
-  #   TOPICS.each do |t|
-  #     game = BoardGame.new(t)
-  #     assert (!game.question_cards.nil? && game.question_cards.pdf.is_a?(Prawn::Document)), msg: "Topic was '#{t}'"
-  #   end
-  # end
+  def test_game_question_cards_pdf_can_be_generated
+    TOPICS.each do |t|
+      game = BoardGame.new(t)
+      assert (!game.question_cards.nil? && game.question_cards.pdf.is_a?(Prawn::Document)), msg: "Topic was '#{t}'"
+    end
+  end
 
   # Game PDF Tests
   def test_game_pdf_can_be_generated
     TOPICS.each do |t|
       game = BoardGame.new(t)
-      assert (game.pdf.is_a?(CombinePDF::PDF)), msg: "Topic was '#{t}'"
+      assert (game.pdf.is_a?(Prawn::Document)), msg: "Topic was '#{t}'"
     end
   end
 

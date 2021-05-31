@@ -14,18 +14,15 @@ rescue ArgumentError => e
   exit
 end
 
+
 # Generate and open the game PDFs
 puts "Generating and opening game PDFs ..."
-board_game.tap do |g|
-  g.assembly_instructions.pdf.open
-  g.game_board.pdf.open
-  g.game_box.pdf.open
-  g.question_cards.pdf.open
-  g.chance_cards.pdf.open
-  g.game_instructions.pdf.open
-  g.game_money.pdf.open
-  g.game_pieces.pdf.open
-end
+board_game.pdf.open
+# board_game.tap do |g|
+#   BoardGame::GAME_COMPONENTS.each do |component|
+#     g.send(component).pdf.open
+#   end
+# end
 
 
 # # Show the board game's title

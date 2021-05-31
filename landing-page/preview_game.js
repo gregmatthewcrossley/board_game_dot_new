@@ -16,7 +16,7 @@ previewButton.addEventListener('click', function() {
     })
     .then(function (board_game_preview) {
       // add the generated game's name to the preview area
-      previewArea.textContent = board_game_preview.name;
+      previewArea.textContent = board_game_preview.url;
       // show the call to action (stripe checkout session creation form)
       callToActionArea.setAttribute('style', 'display:block');
     })
