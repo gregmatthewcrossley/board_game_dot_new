@@ -5,6 +5,10 @@
 FunctionsFramework.on_startup do
   require "functions_framework"
   require_relative './lib/board_game'
+  
+  # for error reporting
+  use Google::Cloud::ErrorReporting::Middleware
+
 end
 
 # Given game parameters (topic, player count, game length), returns 

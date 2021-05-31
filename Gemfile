@@ -20,9 +20,10 @@ gem 'activesupport-inflector', require: 'active_support/inflector' # for plurali
 gem 'prawn' # for PDF generation
 gem 'combine_pdf' # for merging individual PDF components
 
-# for Google Cloud Functions and Storage
+# for Google Cloud Functions, Storage and Error Reporting
 gem "functions_framework", "~> 0.9"
 gem "google-cloud-storage", require: "google/cloud/storage"
+gem "stackdriver", require: "google/cloud/error_reporting"
 
 # for payment processing
 gem 'stripe'
