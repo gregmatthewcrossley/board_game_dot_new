@@ -202,18 +202,52 @@ class BoardGameTest < Minitest::Test
   #   end
   # end  
 
-  def test_game_question_cards_pdf_can_be_generated
+  # def test_game_question_cards_pdf_can_be_generated
+  #   TOPICS.each do |t|
+  #     game = BoardGame.new(t)
+  #     assert (!game.question_cards.nil? && game.question_cards.pdf.is_a?(Prawn::Document)), msg: "Topic was '#{t}'"
+  #   end
+  # end
+
+  # # Game PDF Tests
+  # def test_game_pdf_can_be_generated
+  #   TOPICS.each do |t|
+  #     game = BoardGame.new(t)
+  #     assert (game.pdf.is_a?(Prawn::Document)), msg: "Topic was '#{t}'"
+  #   end
+  # end
+
+  # Download Link Tests
+  def test_download_key_encryption_and_decryption
+    TOPICS.each do |t|
+      data = {:topic => t, :expires_after => (Date.today + 14).to_s}
+      data_encrypted = DownloadKey.encrypt_hash data
+      assert_equal data, DownloadKey.decrypt_to_hash(data_encrypted), msg: "Topic was '#{t}'"
+    end  
+  end
+
+  def test_game_has_an_expiry_date
     TOPICS.each do |t|
       game = BoardGame.new(t)
-      assert (!game.question_cards.nil? && game.question_cards.pdf.is_a?(Prawn::Document)), msg: "Topic was '#{t}'"
+      assert (game.expires_after && game.expires_after.is_a?(Date)), msg: "Topic was '#{t}'"
     end
   end
 
-  # Game PDF Tests
-  def test_game_pdf_can_be_generated
+  def test_game_has_a_download_key
     TOPICS.each do |t|
       game = BoardGame.new(t)
-      assert (game.pdf.is_a?(Prawn::Document)), msg: "Topic was '#{t}'"
+      assert (game.encrypted_download_key && game.encrypted_download_key.is_a?(String)), msg: "Topic was '#{t}'"
+    end
+  end
+
+  def test_game_download_key_can_be_decrypted
+    TOPICS.each do |t|
+      game = BoardGame.new(t)
+      key_data = {
+        :topic => game.topic,
+        :expires_after => game.expires_after.to_s
+      }
+      assert_equal (key_data && DownloadKey.decrypt_to_hash(game.encrypted_download_key)), msg: "Topic was '#{t}'"
     end
   end
 
