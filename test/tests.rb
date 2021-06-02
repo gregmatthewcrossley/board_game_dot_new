@@ -6,16 +6,16 @@ class BoardGameTest < Minitest::Test
 
   parallelize_me!
 
-  TOPICS = ["Rob Ford"]
+  # TOPICS = ["Rob Ford"]
 
-  # TOPICS = [
-  #   "Chorioactis",
-  #   "Francis Walsingham",
-  #   "Albert Einstein",
-  #   "Rob Ford",
-  #   "Rome",
-  #   "World War Two",
-  # ]
+  TOPICS = [
+    "Chorioactis",
+    "Francis Walsingham",
+    "Albert Einstein",
+    "Rob Ford",
+    "Rome",
+    "World War Two",
+  ]
 
   # # Initialization Tests
   # def test_game_creation_requires_a_topic
@@ -218,25 +218,24 @@ class BoardGameTest < Minitest::Test
   # end
 
   # Download Link Tests
-  def test_download_key_encryption_and_decryption
+  def test_game_has_a_download_key
     TOPICS.each do |t|
-      data = {:topic => t, :expires_after => (Date.today + 14).to_s}
-      data_encrypted = DownloadKey.encrypt_hash data
-      assert_equal data, DownloadKey.decrypt_to_hash(data_encrypted), msg: "Topic was '#{t}'"
-    end  
+      game = BoardGame.new(t)
+      assert (game.download_key && game.download_key.is_a?(DownloadKey)), msg: "Topic was '#{t}'"
+    end
   end
 
   def test_game_has_an_expiry_date
     TOPICS.each do |t|
       game = BoardGame.new(t)
-      assert (game.expires_after && game.expires_after.is_a?(Date)), msg: "Topic was '#{t}'"
+      assert (game.download_key.expires_after && game.download_key.expires_after.is_a?(Date) && (game.download_key.expires_after - Date.today).to_i > 1), msg: "Topic was '#{t}'"
     end
   end
 
-  def test_game_has_a_download_key
+  def test_game_has_a_download_path
     TOPICS.each do |t|
       game = BoardGame.new(t)
-      assert (game.encrypted_download_key && game.encrypted_download_key.is_a?(String)), msg: "Topic was '#{t}'"
+      assert (game.download_key.download_path && game.download_key.download_path.is_a?(String)), msg: "Topic was '#{t}'"
     end
   end
 
@@ -245,9 +244,9 @@ class BoardGameTest < Minitest::Test
       game = BoardGame.new(t)
       key_data = {
         :topic => game.topic,
-        :expires_after => game.expires_after.to_s
+        :expires_after => game.download_key.expires_after.to_s
       }
-      assert_equal (key_data && DownloadKey.decrypt_to_hash(game.encrypted_download_key)), msg: "Topic was '#{t}'"
+      assert_equal key_data, DownloadKey.decrypt_to_hash(game.download_key.encrypted_download_key), msg: "Topic was '#{t}'"
     end
   end
 
