@@ -40,7 +40,8 @@ gcloud functions deploy preview \
     --runtime=ruby27 \
     --trigger-http \
     --allow-unauthenticated \
-    --entry-point=generate_preview_content
+    --entry-point=generate_preview_content \
+    --env-vars-file .secrets.yaml
 ```
 
 

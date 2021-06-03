@@ -1,0 +1,25 @@
+"Want to buy? It's just $5!" 
+____[email]_____ [purchase]
+"We'll only use this email to send you a receipt. Nothing else."
+
+
+-> encrypt a hash with topic and email (used to find session/payment) - this is the `key`
+-> create a download link with that key as a query param
+-> include that link in the session line item description
+-> in the session's metadata, save topic, expires_after, key and download_url (expires_after is not included in the key so that it can be updated manually, if the customer later asks for an extention)
+
+on success, redirect to the show_checkout_complete_page function
+-> retrieve the session
+-> redirect, unless paid (session.payment_status != "paid")
+-> redirect, unless not expired (session.metadata[:expires_after] < today)
+-> redirect to success page, with the key (from metadata) as a query param
+-> us JS on the success page to populate the download link (from the query param)
+
+download function (encrypted)
+decrypt (get email, topic)
+find latest completed purchase with matching email and topic
+get metadata[:expired]
+redirect, unless not expired
+look up topic in Google Cloud Storage
+pull PDF file into Ruby runtime
+send PDF file as response

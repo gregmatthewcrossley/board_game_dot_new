@@ -1,5 +1,6 @@
 // Create an instance of the Stripe object with your publishable API key
 const stripe = Stripe('pk_test_7tyV8ujlWRgxEbCtm8n1G4wb');
+const emailField = document.getElementById('email-field');
 const checkoutButton = document.getElementById('checkout-button');
 
 checkoutButton.addEventListener('click', function() {
@@ -7,7 +8,7 @@ checkoutButton.addEventListener('click', function() {
 
 
   // Create a new Checkout Session using the Google Cloud Function `create_stripe_checkout_session`
-  request_uri = '/functions/checkout?topic='+encodeURIComponent(topicField.value);
+  request_uri = '/functions/checkout?topic='+encodeURIComponent(topicField.value)+'&email='+encodeURIComponent(emailField.value);
   fetch(request_uri, {method: 'POST'})
     .then(function(response) {
       return response.json();

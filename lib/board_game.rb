@@ -7,6 +7,7 @@ class BoardGame
   # load all the other ruby files
   require 'require_all' # https://github.com/jarmo/require_all
   require_rel '../lib/**/*.rb'
+  require 'date'
 
   include GamePdfGenerator
 
@@ -23,7 +24,7 @@ class BoardGame
 
   # GAME_COMPONENTS = ["game_money"]
 
-  attr_reader :topic, :name, :description 
+  attr_reader :topic, :name, :description, :download_key
 
   def initialize(topic, text: nil)
     raise ArgumentError, 'must pass a topic (string) when initializing' unless topic.is_a?(String) && !topic.empty?
@@ -45,6 +46,7 @@ class BoardGame
     
     # save or retrieve the main image URL
     @main_image_url ||= ExternalImageSource::WikipediaApi.new(@topic).url
+  
   end
 
   def assembly_instructions

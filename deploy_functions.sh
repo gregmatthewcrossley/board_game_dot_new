@@ -8,28 +8,32 @@ gcloud functions deploy preview \
     --runtime=ruby27 \
     --trigger-http \
     --allow-unauthenticated \
-    --entry-point=generate_preview_content &
+    --entry-point=generate_preview_content \
+    --env-vars-file .secrets.yaml &
 
 gcloud functions deploy checkout \
     --project=pure-lantern-313313 \
     --runtime=ruby27 \
     --trigger-http \
     --allow-unauthenticated \
-    --entry-point=create_stripe_checkout_session &
+    --entry-point=create_stripe_checkout_session \
+    --env-vars-file .secrets.yaml &
 
-gcloud functions deploy make_link \
+gcloud functions deploy checkout_complete \
     --project=pure-lantern-313313 \
     --runtime=ruby27 \
     --trigger-http \
     --allow-unauthenticated \
-    --entry-point=generate_game_pdf_download_url &
+    --entry-point=show_checkout_complete_page \
+    --env-vars-file .secrets.yaml &
 
 gcloud functions deploy download \
     --project=pure-lantern-313313 \
     --runtime=ruby27 \
     --trigger-http \
     --allow-unauthenticated \
-    --entry-point=retrieve_game_pdf &
+    --entry-point=retrieve_game_pdf \
+    --env-vars-file .secrets.yaml &
 
 wait
 
