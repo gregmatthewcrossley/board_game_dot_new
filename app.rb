@@ -5,11 +5,15 @@
 FunctionsFramework.on_startup do
   require "functions_framework"
   require_relative './lib/board_game'
-  require_relative './game_purchase/*.rb'
+  require_all './game_purchase/'
 end
 
 # Given game parameters (topic, player count, game length), returns 
-# JS that appends the landing page with "preview" content for a given topic
+# JS that appends the landing page with "preview" content for a given topic.
+# Local testing: 
+#   export GOOGLE_APPLICATION_CREDENTIALS="/Users/gmc/Code/board_game_dot_new/google_application_credentials.json"
+#   bundle exec functions-framework-ruby --port 8080 --target generate_preview_content
+#   http://localhost:8080/?topic=Rob+Ford
 FunctionsFramework.http("generate_preview_content") do |request|
   begin # for error reporting
     # sanitize the topic string provided by the user
@@ -38,10 +42,13 @@ FunctionsFramework.http("generate_preview_content") do |request|
     Google::Cloud::ErrorReporting.report e
   end
 end
-# http://localhost:8080/?topic=Rob+Ford
 
 # Given a topic, returns a hash with the ID of a Stripe Checkout Session 
-# for use by Stipe Checkout on the client side
+# for use by Stipe Checkout on the client side.
+# Local testing: 
+#   export GOOGLE_APPLICATION_CREDENTIALS="/Users/gmc/Code/board_game_dot_new/google_application_credentials.json"
+#   bundle exec functions-framework-ruby --port 8081 --target create_stripe_checkout_session
+#   http://localhost:8081/?topic=Rob+Ford&email=mr%40big.com
 FunctionsFramework.http("create_stripe_checkout_session") do |request|
   begin
     topic = CGI.escape_html(request.params["topic"])
@@ -54,20 +61,27 @@ FunctionsFramework.http("create_stripe_checkout_session") do |request|
 end
 
 # Given a Stripe::Checkout session ID, redirects the client to an HTML with the game PDF download link.
+# Local testing: 
+#   export GOOGLE_APPLICATION_CREDENTIALS="/Users/gmc/Code/board_game_dot_new/google_application_credentials.json"
+#   bundle exec functions-framework-ruby --port 8082 --target show_checkout_complete_page
+#   http://localhost:8082/?stripe_checkout_session_id=cs_test_a192wx07TD2crSVfDRiOK7bKt8dgy4OgDLtLJTuSxWqw5ypMMbQPT9yZSB
 FunctionsFramework.http("show_checkout_complete_page") do |request|
   begin
     # parse the session ID from the query string
     session_id = CGI.escape_html(request.params["stripe_checkout_session_id"])
     # retrieve the session from Stripe
     begin
-      session = StripeSession.retrieve(session_id)
+
+      session = GamePurchase.retrieve_stripe_checkout_session(session_id)
     rescue Stripe::InvalidRequestError
       # redirect to 404 static HTML
-      return ::Rack::Response.redirect("/404.html")
+      return [ 404, {'Location' => "/404.html"}, [] ] 
     end
 
     # if the payment isn't complete, redirect to 'expired' static HTML
-    return ::Rack::Response.redirect("/not_paid.html?topic=#{topic}") if session.payment_status != "paid"
+    unless session.payment_status == "paid" || true
+      return [ 302, {'Location' => "/not_paid.html?topic=#{topic}"}, [] ]
+    end
 
     # initialize the key variables
     topic, download_key, download_url, expires_after = nil
@@ -82,10 +96,10 @@ FunctionsFramework.http("show_checkout_complete_page") do |request|
     # Redirection logic
     if (Date.today - expires_after > 0)
       # if expired, redirect to 'expired' static HTML
-      return ::Rack::Response.redirect("/link_expired.html?topic=#{topic}")
+      return [ 302, {'Location' => "/link_expired.html?topic=#{topic}"}, [] ]
     else
       # redirect to 'download page' static HTML 
-      return ::Rack::Response.redirect("/paid.html?download_key=#{download_key}")
+      return [ 302, {'Location' => "/paid.html?download_key=#{download_key}"}, [] ]
     end
   rescue StandardError => e
     Google::Cloud::ErrorReporting.report e
@@ -95,62 +109,55 @@ end
 # Receives download requests, decrypts the query string, and if the 
 # exipration date isn't past, serves the game PDF (either freshly
 # generated or served from the database, if it exists there).
+# Local testing: 
+#   export GOOGLE_APPLICATION_CREDENTIALS="/Users/gmc/Code/board_game_dot_new/google_application_credentials.json"
+#   bundle exec functions-framework-ruby --port 8083 --target retrieve_game_pdf
+#   http://localhost:8083/?download_key=pngqUvuPuswBW88upmMHUCaZgmEvcR5HAA89TVLnenEkq5NDaPp_1pgxhsRhyj-F
 FunctionsFramework.http("retrieve_game_pdf") do |request|
   begin
     # parse the session ID from the query string
-    key = CGI.escape_html(request.params["key"])
+    download_key = CGI.escape_html(request.params["download_key"])
     # initialize the topic and email variables
     topic, email = nil
-    # decrypt the key and get the topic and email values
-    DownloadKey.decrypt_to_hash(key).tap do |key_data|
+    # decrypt the download_key and get the topic and email values
+    DownloadKey.decrypt_to_hash(download_key).tap do |key_data|
       topic = key_data[:topic]
       email = key_data[:email]
     end
-    raise ArgumentError, ':topic was not found in the decrypted key' unless topic
-    raise ArgumentError, ':email was not found in the decrypted key' unless email
-    begin
-      # find the Stripe customer
-      customers = Stripe::Customer.list({email: email}).data
-      raise ArgumentError, "no customers found with email address '#{email}'" unless customers.any?
-      # find all payment intents for this customer
-      payment_intents = Stripe::PaymentIntent.list({customer: customers.last}).data
-      raise ArgumentError, "no payment_intents found for customer '#{email}'" unless payment_intents.any?
-      # find all payments for this customer
-      succeeded_payment_intents = payment_intents.select {|p| p.status == "succeeded"}
-      raise ArgumentError, "no 'succeeded' payment_intents found for customer '#{email}'" unless succeeded_payment_intents.any?
-      # find all checkout sessions for this payment intent
-      sessions = Stripe::Checkout::Session.list({payment_intent: succeeded_payment_intents.last.id}).data
-      raise ArgumentError, "no checkout sessions found for payment_intent '#{succeeded_payment_intents.last.id}'" unless sessions.any?
-      raise ArgumentError, "no metadata found for checkout sessions '#{sessions.last.id}'" if sessions.last.metadata.nil?
-      # return a 404 header if this session wasn't paid
-      return ::Rack::Response.new(nil, 404) if sessions.last.payment_status != "paid"
-    rescue Stripe::InvalidRequestError
-      # redirect to 404 static HTML
-      return ::Rack::Response.redirect("/404.html")
+    raise ArgumentError, ':topic was not found in the decrypted download_key' unless topic
+    raise ArgumentError, ':email was not found in the decrypted download_key' unless email
+    
+    
+    # verfify that a customer with this email address has paid for this topic
+    unless session = GamePurchase.paid_stripe_session_for(topic, email)
+      return [ 404, {'Location' => "/404.html"}, [] ] 
     end
     # get the topic and expiry date from the metadata
     topic, expires_after = nil
-    sessions.last.metadata.to_h.tap do |m|
+    session.metadata.to_h.tap do |m|
       topic = m[:topic]
-      expires_after = Date.parse(m[:expires_after])
+      expires_after = Date.parse(m[:expire_on]) ### CHANGE THIS
     end  
     if (Date.today - expires_after > 0)
       # if expired, redirect to 'expired' static HTML
-      return ::Rack::Response.redirect("/link_expired.html?topic=#{topic}")
+      return [ 302, {'Location' => "/link_expired.html?topic=#{topic}"}, [] ] 
     else
       # find the file in Google Cloud Storage
       files_matching_topic = Google::Cloud::Storage.new
         .bucket('board-game-dot-new')
         .files(prefix: ".game_pdfs/#{topic}/")
-      return ::Rack::Response.redirect("/404.html") unless files_matching_topic.any?
-      # download the file to the Google Functions Ruby runtime as an in-memory StringIO object
-      file = files_matching_topic.last.download.tap(&:rewind)
-      raise ArgumentError, "file for topic '#{topic}' could not be downloaded" unless file.is_a?(StringIO)
-      # send the file to the client
-      return Rack::Response.new.tap do |r|
-        r.headers.merge!( "Content-Type" => 'application/pdf' )
-        r.write file
+      unless files_matching_topic.any?
+        return [ 404, {'Location' => "/404.html"}, [] ] 
       end
+      # download the file to the Google Functions Ruby runtime as an in-memory StringIO object
+      file = files_matching_topic.last
+      file_content = file.download.tap(&:rewind)
+      raise ArgumentError, "file_content for topic '#{topic}' could not be downloaded" unless file_content.is_a?(StringIO)
+      # send the file to the client
+      return [ 200, {
+          "Content-Type" => "application/pdf",
+          "Content-Disposition" => "attachment; filename=\"#{file.name.split('/').last}\"",
+        }, file_content ]
     end
   rescue StandardError => e
     Google::Cloud::ErrorReporting.report e

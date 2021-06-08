@@ -43,10 +43,11 @@ class DownloadKey
 
 
   def self.generate_new_base_64_encoded_cipher_key_and_iv
+    # in a ruby console, run: DownloadKey.generate_new_base_64_encoded_cipher_key_and_iv
     cipher = OpenSSL::Cipher::AES.new(256, :CBC)
     puts
-    puts "Key: #{Base64.urlsafe_encode64(cipher.random_key)}"
-    puts " IV: #{Base64.urlsafe_encode64(cipher.random_key)}"
+    puts "GAME_DOWNLOAD_LINK_CIPHER_KEY_BASE_64: #{Base64.urlsafe_encode64(cipher.random_key)}"
+    puts "GAME_DOWNLOAD_LINK_CIPHER_IV_BASE_64:  #{Base64.urlsafe_encode64(cipher.random_iv)}"
     puts
     puts "Don't forget to copy these and update .secrets.yaml!"
     puts
