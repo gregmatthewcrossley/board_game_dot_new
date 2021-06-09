@@ -71,15 +71,16 @@ FunctionsFramework.http("show_checkout_complete_page") do |request|
     session_id = CGI.escape_html(request.params["stripe_checkout_session_id"])
     # retrieve the session from Stripe
     begin
-
       session = GamePurchase.retrieve_stripe_checkout_session(session_id)
-    rescue Stripe::InvalidRequestError
+    rescue Stripe::InvalidRequestError => e
       # redirect to 404 static HTML
+      Google::Cloud::ErrorReporting.report e
       return [ 404, {'Location' => "/404.html"}, [] ] 
     end
 
     # if the payment isn't complete, redirect to 'expired' static HTML
     unless session.payment_status == "paid" || true
+
       return [ 302, {'Location' => "/not_paid.html?topic=#{topic}"}, [] ]
     end
 
@@ -98,8 +99,8 @@ FunctionsFramework.http("show_checkout_complete_page") do |request|
       # if expired, redirect to 'expired' static HTML
       return [ 302, {'Location' => "/link_expired.html?topic=#{topic}"}, [] ]
     else
-      # redirect to 'download page' static HTML 
-      return [ 302, {'Location' => "/paid.html?download_key=#{download_key}"}, [] ]
+      # redirect to 'success / download page' static HTML 
+      return [ 302, {'Location' => "/success.html?download_key=#{download_key}"}, [] ]
     end
   rescue StandardError => e
     Google::Cloud::ErrorReporting.report e
@@ -136,7 +137,7 @@ FunctionsFramework.http("retrieve_game_pdf") do |request|
     topic, expires_after = nil
     session.metadata.to_h.tap do |m|
       topic = m[:topic]
-      expires_after = Date.parse(m[:expire_on]) ### CHANGE THIS
+      expires_after = Date.parse(m[:expires_after])
     end  
     if (Date.today - expires_after > 0)
       # if expired, redirect to 'expired' static HTML

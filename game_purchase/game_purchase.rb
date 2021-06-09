@@ -4,6 +4,8 @@ class GamePurchase
 
   PATH_TO_SECRETS_YAML = "/Users/gmc/Code/board_game_dot_new/.secrets.yaml"
 
+  PRICE_IN_CENTS = 500
+  CURRENCY = 'CAD'
   DAYS_AVAILABLE = 14 # number of days the download link will work
 
   def self.create_stripe_checkout_session(topic, email)
@@ -12,15 +14,26 @@ class GamePurchase
     ensure_stripe_api_keys_are_saved_to_environment
     Stripe.api_key = ENV['STRIPE_API_KEY']
     download_key = DownloadKey.new(topic, email).encrypted_download_key
-    download_url = "https://boardgame.new/download?key=#{download_key}"
+    download_url = "https://boardgame.new/download?download_key=#{download_key}"
+    description = "Download link: #{download_url} (will only work after payment, for #{DAYS_AVAILABLE} days)"
     session = Stripe::Checkout::Session.create({
+      mode: "payment",
       payment_method_types: ['card'],
+      customer_email: email,
       line_items: [{
-        price: 'price_1IvT2wKPc8URRCXAFjGAPHnb', # see https://dashboard.stripe.com/products/prod_JYR2C1kMen7g2X
-        quantity: 1,
-        description: "DIY Board Game Kit: '#{topic}' \n Download Link: #{download_url} \nThis link will work after payment for #{DAYS_AVAILABLE} days."
+        price_data: {
+          product_data: {
+            name: "'#{topic}' Board Game Making Kit", #  'Rob Ford' Board Game Making Kit
+            metadata: {
+              topic: topic
+            }
+          },
+          unit_amount: PRICE_IN_CENTS,
+          currency: CURRENCY,
+        },
+        description: description,
+        quantity: 1
       }],
-      mode: 'payment',
       metadata: {
         topic: topic,
         download_key: download_key,
@@ -46,7 +59,7 @@ class GamePurchase
       ensure_stripe_api_keys_are_saved_to_environment
       Stripe.api_key = ENV['STRIPE_API_KEY']
       # find the Stripe customer
-      customers = Stripe::Customer.list({email: "mr@big.com"}).data  ### CHANGE THIS
+      customers = Stripe::Customer.list({email: email}).data
       raise ArgumentError, "no customers found with email address '#{email}'" unless customers.any?
       # find all payment intents for this customer
       payment_intents = Stripe::PaymentIntent.list({customer: customers.last}).data
