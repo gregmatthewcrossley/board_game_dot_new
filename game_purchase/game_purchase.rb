@@ -14,7 +14,7 @@ class GamePurchase
     ensure_stripe_api_keys_are_saved_to_environment
     Stripe.api_key = ENV['STRIPE_API_KEY']
     download_key = DownloadKey.new(topic, email).encrypted_download_key
-    download_url = "https://boardgame.new/download?download_key=#{download_key}"
+    download_url = "https://boardgame.new/functions/download?download_key=#{download_key}"
     description = "Download link: #{download_url} (will only work after payment, for #{DAYS_AVAILABLE} days)"
     session = Stripe::Checkout::Session.create({
       mode: "payment",
@@ -40,7 +40,7 @@ class GamePurchase
         download_url: download_url,
         expires_after: (Date.today + DAYS_AVAILABLE).to_s
       },
-      success_url: "https://boardgame.new/checkout_complete?stripe_checkout_session_id={CHECKOUT_SESSION_ID}",
+      success_url: "https://boardgame.new/functions/checkout_complete?stripe_checkout_session_id={CHECKOUT_SESSION_ID}",
       cancel_url:  "https://boardgame.new?topic=#{CGI.escape_html(topic)}"
     })
   end

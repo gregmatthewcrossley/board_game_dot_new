@@ -30,7 +30,7 @@ FunctionsFramework.http("generate_preview_content") do |request|
       .create_file(
         temp_file_path,
         ".game_pdfs/#{board_game.topic}/#{game_file_name}", 
-        acl: "publicRead",
+        acl: "publicRead"
       )
     File.delete temp_file_path
     # return JSON with preview content
@@ -61,13 +61,16 @@ FunctionsFramework.http("create_stripe_checkout_session") do |request|
 end
 
 # Given a Stripe::Checkout session ID, redirects the client to an HTML with the game PDF download link.
-# Local testing: 
+# Local testing:
 #   export GOOGLE_APPLICATION_CREDENTIALS="/Users/gmc/Code/board_game_dot_new/google_application_credentials.json"
 #   bundle exec functions-framework-ruby --port 8082 --target show_checkout_complete_page
 #   http://localhost:8082/?stripe_checkout_session_id=cs_test_a192wx07TD2crSVfDRiOK7bKt8dgy4OgDLtLJTuSxWqw5ypMMbQPT9yZSB
 FunctionsFramework.http("show_checkout_complete_page") do |request|
   begin
     # parse the session ID from the query string
+    if request.nil? || request.params["stripe_checkout_session_id"].empty?
+      raise ArgumentError, "required parameter 'stripe_checkout_session_id' is nil"
+    end
     session_id = CGI.escape_html(request.params["stripe_checkout_session_id"])
     # retrieve the session from Stripe
     begin
@@ -79,8 +82,7 @@ FunctionsFramework.http("show_checkout_complete_page") do |request|
     end
 
     # if the payment isn't complete, redirect to 'expired' static HTML
-    unless session.payment_status == "paid" || true
-
+    unless session.payment_status == "paid"
       return [ 302, {'Location' => "/not_paid.html?topic=#{topic}"}, [] ]
     end
 
@@ -104,6 +106,7 @@ FunctionsFramework.http("show_checkout_complete_page") do |request|
     end
   rescue StandardError => e
     Google::Cloud::ErrorReporting.report e
+    return [ 404, {'Location' => "/404.html"}, [] ] 
   end
 end
 
@@ -127,7 +130,6 @@ FunctionsFramework.http("retrieve_game_pdf") do |request|
     end
     raise ArgumentError, ':topic was not found in the decrypted download_key' unless topic
     raise ArgumentError, ':email was not found in the decrypted download_key' unless email
-    
     
     # verfify that a customer with this email address has paid for this topic
     unless session = GamePurchase.paid_stripe_session_for(topic, email)
