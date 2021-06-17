@@ -116,7 +116,7 @@ end
 # Local testing: 
 #   export GOOGLE_APPLICATION_CREDENTIALS="/Users/gmc/Code/board_game_dot_new/google_application_credentials.json"
 #   bundle exec functions-framework-ruby --port 8083 --target retrieve_game_pdf
-#   http://localhost:8083/?download_key=pngqUvuPuswBW88upmMHUCaZgmEvcR5HAA89TVLnenEkq5NDaPp_1pgxhsRhyj-F
+#   http://localhost:8083/?download_key=pngqUvuPuswBW88upmMHUIUNvpY8oA8sO7lYQLsi4XkzHFuZGVuyENByoI8qM2bU
 FunctionsFramework.http("retrieve_game_pdf") do |request|
   begin
     # parse the session ID from the query string
@@ -130,7 +130,7 @@ FunctionsFramework.http("retrieve_game_pdf") do |request|
     end
     raise ArgumentError, ':topic was not found in the decrypted download_key' unless topic
     raise ArgumentError, ':email was not found in the decrypted download_key' unless email
-    
+
     # verfify that a customer with this email address has paid for this topic
     unless session = GamePurchase.paid_stripe_session_for(topic, email)
       return [ 404, {'Location' => "/404.html"}, [] ] 
@@ -141,6 +141,7 @@ FunctionsFramework.http("retrieve_game_pdf") do |request|
       topic = m[:topic]
       expires_after = Date.parse(m[:expires_after])
     end  
+
     if (Date.today - expires_after > 0)
       # if expired, redirect to 'expired' static HTML
       return [ 302, {'Location' => "/link_expired.html?topic=#{topic}"}, [] ] 
@@ -157,10 +158,11 @@ FunctionsFramework.http("retrieve_game_pdf") do |request|
       file_content = file.download.tap(&:rewind)
       raise ArgumentError, "file_content for topic '#{topic}' could not be downloaded" unless file_content.is_a?(StringIO)
       # send the file to the client
-      return [ 200, {
-          "Content-Type" => "application/pdf",
-          "Content-Disposition" => "attachment; filename=\"#{file.name.split('/').last}\"",
-        }, file_content ]
+      return ::Rack::Response.new.tap do |r|
+        r.headers["Content-Type"] = "application/pdf"
+        r.headers["Content-Disposition"] = "attachment; filename=\"#{file.name.split('/').last}\""
+        r.write(file_content.string)
+      end
     end
   rescue StandardError => e
     Google::Cloud::ErrorReporting.report e

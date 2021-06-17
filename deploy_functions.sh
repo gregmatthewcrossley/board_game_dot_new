@@ -39,7 +39,6 @@ gcloud functions deploy checkout_complete \
 gcloud functions deploy download \
     --project=pure-lantern-313313 \
     --runtime=ruby27 \
-    --memory=8192MB \
     --trigger-http \
     --allow-unauthenticated \
     --timeout=540s \
