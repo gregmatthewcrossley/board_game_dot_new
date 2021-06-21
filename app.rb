@@ -9,6 +9,22 @@ FunctionsFramework.on_startup do
   require_all './game_purchase/'
 end
 
+# Get a random topic name
+# Local testing: 
+#   export GOOGLE_APPLICATION_CREDENTIALS="/Users/gmc/Code/board_game_dot_new/google_application_credentials.json"
+#   bundle exec functions-framework-ruby --port 8079 --target retrieve_random_topic
+#   http://localhost:8079/
+FunctionsFramework.http("retrieve_random_topic") do |request|
+  begin # for error reporting    
+    # return JSON with topic string
+    return {
+      topic: ExternalTextSource::WikipediaApi::FEATURED_ARTICLE_TITLES.sample
+    }.to_json 
+  rescue StandardError => e
+    Google::Cloud::ErrorReporting.report e
+  end
+end
+
 # Given game parameters (topic, player count, game length), returns 
 # JS that appends the landing page with "preview" content for a given topic.
 # Local testing: 

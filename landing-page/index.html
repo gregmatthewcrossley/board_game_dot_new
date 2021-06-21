@@ -26,9 +26,13 @@
     src="big-b.png"
     alt="Big 'B' icon for this page (boardgame.new)" /> -->
     <h1>boardgame.new</h1>
-    <h3>an obscure boardgame maker</h3>
-    <input type="text" id="topic-field" value="Rob Ford">
-    <button id="preview-button">make!</button>
+    <h3 id="input-prompt-phrase">make a board game about almost anything, like</h3>
+    <div id="topic-field-container">
+      <input type="text" id="topic-field" value="Something Really Long">
+      <img src="refresh.svg" id="topic-refresh">
+    </div>
+    
+    <button id="preview-button">make it!</button>
     
     <p id="preview">
     </p>
@@ -40,10 +44,32 @@
       <p>Your email will only be used to send you a receipt. Nothing else, promise!</p>
     </section>
 
+
+    <!-- Random Topic Script -->
+    <script src="random_topic.js"></script>
     <!-- Preview Script -->
     <script src="preview_game.js"></script>
     <!-- Stripe Checkout Script -->
     <script src="stripe_checkout.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/@tarekraafat/autocomplete.js@10.1.5/dist/autoComplete.min.js"></script>
+
+    <script>
+      const autoCompleteJS = new autoComplete({ // API Basic Configuration Object
+        selector: "#topic-field",
+        data: {
+          src: ["Sauce - Thousand Island", "Wild Boar - Tenderloin", "Goat - Whole Cut"]
+        },
+        resultItem: {
+          highlight: {
+            render: true
+          }
+        }
+      });
+    </script>
+
+    <link rel="stylesheet" href="1https://cdn.jsdelivr.net/npm/@tarekraafat/autocomplete.js@10.1.5/dist/css/autoComplete.min.css">
+
 
   </body>
 </html>
