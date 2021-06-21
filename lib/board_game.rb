@@ -30,22 +30,28 @@ class BoardGame
     raise ArgumentError, 'must pass a topic (string) when initializing' unless topic.is_a?(String) && !topic.empty?
 
     # save the topic
-    @topic = topic.split().map(&:capitalize).join(' ')
+    @topic = topic
 
     # generate a random name and description
     NameAndDescription.new(@topic).tap do |n|
       @name = n.name
       @description = n.description
     end
-
+    
     # save or retrieve the text content
-    @text ||= ExternalTextSource::WikipediaApi.new(@topic).text
+    BoardGame.log_elapsed_time_for("text retrieval for '#{@topic}'") do
+      @text ||= ExternalTextSource::WikipediaApi.new(@topic).text
+    end
 
     # analyze the text
-    @analyzed_text ||= ExternalTextAnalyzer::GoogleNaturalLanguage.new(@text).analysis
-    
+    BoardGame.log_elapsed_time_for("text analysis for '#{@topic}'") do
+      @analyzed_text ||= ExternalTextAnalyzer::GoogleNaturalLanguage.new(@text).analysis
+    end
+
     # save or retrieve the main image URL
-    @main_image_url ||= ExternalImageSource::WikipediaApi.new(@topic).url
+    BoardGame.log_elapsed_time_for("main image sourcing for '#{@topic}'") do
+      @main_image_url ||= ExternalImageSource::WikipediaApi.new(@topic).url
+    end
   
   end
 
@@ -84,9 +90,20 @@ class BoardGame
   def generate
     # generates all game content
     GAME_COMPONENTS.each do |component|
-      send component
+      BoardGame.log_elapsed_time_for("#{component} generation for '#{@topic}'") do
+        send component
+      end
     end
     return self
+  end
+
+  def self.log_elapsed_time_for(description)
+    # raise ArgumentError, "description must be a String" unless description.is_a?(String)
+    # starting = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+    yield
+    # ending = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+    # elapsed = ending - starting
+    # puts "#{elapsed.round(1)}s".ljust(8) +"#{description}."
   end
 
 end

@@ -4,6 +4,8 @@ module ExternalTextSource
 
   class WikipediaApi
 
+    FEATURED_ARTICLE_TITLES = File.read(File.expand_path('featured_article_titles.txt', File.dirname(__FILE__))).split(/\n/)
+
     attr_reader :text, :title
 
     def initialize(topic)
@@ -11,7 +13,7 @@ module ExternalTextSource
       raise ArgumentError, "must pass a topic (a non-empty String)" unless topic.is_a?(String) && !topic.empty?
       
       # attempt to retrieve the Wikipedia article
-      article = Wikipedia.find(topic)
+      article = Wikipedia.find(topic.downcase) # downcased topics seem to work best
       raise ArgumentError, "no Wikipedia article found for '#{topic}'" if article.title.nil? || article.text.nil?
       @title = article.title
       @text = article.text
