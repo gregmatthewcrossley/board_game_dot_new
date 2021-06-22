@@ -25,6 +25,24 @@ FunctionsFramework.http("retrieve_vetted_topics") do |request|
   end
 end
 
+# Vett a topic name
+# Local testing: 
+#   export GOOGLE_APPLICATION_CREDENTIALS="/Users/gmc/Code/board_game_dot_new/google_application_credentials.json"
+#   bundle exec functions-framework-ruby --port 8002 --target retrieve_vetted_topics
+#   http://localhost:8001/
+FunctionsFramework.http("vett_topic") do |request|
+  begin # for error reporting
+    # sanitize the topic string provided by the user
+    topic = CGI.escape_html(request.params["topic"])
+    # return JSON with topic string
+    return {
+      vetted_topics: ExternalTextSource::WikipediaApi::FEATURED_ARTICLE_TITLES
+    }.to_json
+  rescue StandardError => e
+    Google::Cloud::ErrorReporting.report e
+  end
+end
+
 # Given game parameters (topic, player count, game length), returns 
 # JS that appends the landing page with "preview" content for a given topic.
 # Local testing: 

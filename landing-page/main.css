@@ -92,38 +92,23 @@ img#topic-refresh:active {
   opacity: 0.8;
   cursor: pointer;
 }
-/*img#topic-refresh.loading {
-  animation-name: spin;
-  animation-duration: 750ms;
-  animation-iteration-count: infinite;
-  animation-timing-function: linear; 
-}
-@keyframes spin {
-  from {
-    transform:rotate(0deg);
-  }
-  to {
-    transform:rotate(360deg);
-  }
-}*/
 
 button#preview-button {
-display: none;
-color: white;
-font-size: 2rem;
-width: 25vw;
-height: 25vw;
-border-radius: 12.5vw;
-margin: 2rem;
-border: 0.3rem white solid;
-background-color: #84E9F4;
-font-family: "Courier New", monospace;
-font-weight: bold;
-text-transform: uppercase;
-letter-spacing: 0.1rem;
-line-height: 2rem;
-box-shadow: 0.5rem 0.5rem 0.5rem 0rem #0000004a;
-transition: all 0.1s;
+  color: white;
+  font-size: 2rem;
+  width: 25vw;
+  height: 25vw;
+  border-radius: 12.5vw;
+  margin: 2rem;
+  border: 0.3rem white solid;
+  background-color: #84E9F4;
+  font-family: "Courier New", monospace;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.1rem;
+  line-height: 2rem;
+  box-shadow: 0.5rem 0.5rem 0.5rem 0rem #0000004a;
+  transition: all 0.1s;
 }
 
 button#preview-button:hover {
@@ -136,6 +121,28 @@ button#preview-button:active {
   cursor: pointer;
   box-shadow: 0.25rem 0.25rem 0.25rem 0rem #0000004a;
   transform: scale(0.95);
+}
+
+button#preview-button.working {
+  width: 20vw;
+  height: 20vw;
+  border-radius: 10vw;
+  cursor: wait;
+  background-image: url("math_gif_1.gif");
+  border-style: dashed;
+  font-size: 0;
+  animation-name: spin;
+  animation-duration: 10000ms;
+  animation-iteration-count: infinite;
+  animation-timing-function: linear; 
+}
+@keyframes spin {
+  from {
+    transform:rotate(0deg);
+  }
+  to {
+    transform:rotate(360deg);
+  }
 }
 
 p {
