@@ -16,10 +16,9 @@ cd tests
 
 ### To run a web server locally (for the static HTML etc pages)
 ```bash
-cd landing-page
-ruby -run -e httpd . -p 8080
+ruby local_server.rb
 ```
-and then in your browser, go to `http://localhost:8080/`
+and then in your browser, go to `http://localhost:8000/`
 
 ### To run a function locally
 ```bash

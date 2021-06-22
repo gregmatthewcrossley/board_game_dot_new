@@ -1,5 +1,5 @@
 const previewButton = document.getElementById('preview-button');
-const topicField = document.getElementById('topic-field');
+// const topicField = document.getElementById('topic-field');
 const previewArea = document.getElementById('preview');
 const callToActionArea = document.getElementById('call-to-action');
 
