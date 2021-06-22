@@ -15,6 +15,7 @@
 
     <!-- stylesheet -->
     <link rel="stylesheet" href="main.css">
+    <link rel="stylesheet" href="autoComplete.css">
 
     <!-- Stripe's JS Library -->
     <script src="https://js.stripe.com/v3/"></script>
@@ -27,8 +28,8 @@
     alt="Big 'B' icon for this page (boardgame.new)" /> -->
     <h1>boardgame.new</h1>
     <h3 id="input-prompt-phrase">make a board game about almost anything, like</h3>
-    <div id="topic-field-container">
-      <input type="text" id="topic-field" value="Something Really Long">
+    <div id="topic-field-container" class="autoComplete_wrapper">
+      <input type="text" id="topic-field" autocorrect="off" autocomplete="off" autocapitalize="off" onfocus="this.value=''" >
       <img src="refresh.svg" id="topic-refresh">
     </div>
     
@@ -45,30 +46,17 @@
     </section>
 
 
-    <!-- Random Topic Script -->
-    <script src="random_topic.js"></script>
+    <!-- SCRIPTS -->
+    <!-- Topic Input Handling (Random and Autocomplete) -->
+    <script src="vettedTopics.js"></script>
+    <!-- Autocomplete Library and Configuration -->
+    <script src="https://cdn.jsdelivr.net/npm/@tarekraafat/autocomplete.js@10.1.5/dist/autoComplete.min.js"></script>
+    <script src="autoCompleteConfig.js"></script>
+
     <!-- Preview Script -->
     <script src="preview_game.js"></script>
     <!-- Stripe Checkout Script -->
     <script src="stripe_checkout.js"></script>
-
-    <script src="https://cdn.jsdelivr.net/npm/@tarekraafat/autocomplete.js@10.1.5/dist/autoComplete.min.js"></script>
-
-    <script>
-      const autoCompleteJS = new autoComplete({ // API Basic Configuration Object
-        selector: "#topic-field",
-        data: {
-          src: ["Sauce - Thousand Island", "Wild Boar - Tenderloin", "Goat - Whole Cut"]
-        },
-        resultItem: {
-          highlight: {
-            render: true
-          }
-        }
-      });
-    </script>
-
-    <link rel="stylesheet" href="1https://cdn.jsdelivr.net/npm/@tarekraafat/autocomplete.js@10.1.5/dist/css/autoComplete.min.css">
 
 
   </body>

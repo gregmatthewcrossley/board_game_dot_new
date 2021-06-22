@@ -15,6 +15,7 @@
 cli
 landing-page
 test
+local_server.rb
 *.sh
 *.md
 

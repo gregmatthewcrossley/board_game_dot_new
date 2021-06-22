@@ -3,7 +3,7 @@
 echo "Deploying boardgame.new's functions to Google Cloud Functions"
 echo
 
-gcloud functions deploy random_topic \
+gcloud functions deploy topics \
     --project=pure-lantern-313313 \
     --runtime=ruby27 \
     --trigger-http \
@@ -11,7 +11,7 @@ gcloud functions deploy random_topic \
     --timeout=540s \
     --security-level=secure-always \
     --source=/Users/gmc/Code/board_game_dot_new/ \
-    --entry-point=retrieve_random_topic \
+    --entry-point=retrieve_vetted_topics \
     --env-vars-file .secrets.yaml &
 
 gcloud functions deploy preview \

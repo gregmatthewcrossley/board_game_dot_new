@@ -1,6 +1,8 @@
 # Boardgame.new
 
-### To use locally, via the command line:
+## Local Development
+
+### To use board_game_dot_new locally, via the command line:
 ```bash
 cd cli
 ./run_cli.sh
@@ -12,7 +14,22 @@ cd tests
 ./run_tests.sh
 ```
 
-### To Deploy all functions
+### To run a web server locally (for the static HTML etc pages)
+```bash
+cd landing-page
+ruby -run -e httpd . -p 8080
+```
+and then in your browser, go to `http://localhost:8080/`
+
+### To run a function locally
+```bash
+bundle exec functions-framework-ruby --target generate_preview_content
+```
+and then in your browser, go to `http://localhost:8081?topic=Rob+Ford`
+
+## Production
+
+### To deploy all functions
 ```bash
 ./deploy_functions.sh
 ```
@@ -27,12 +44,6 @@ To set the Google credential environment
 export GOOGLE_APPLICATION_CREDENTIALS="/Users/gmc/Code/board_game_dot_new/google_application_credentials.json"
 ```
 
-### To run a function locally
-```bash
-bundle exec functions-framework-ruby --target generate_preview_content
-http://localhost:8080?topic=Rob+Ford
-```
-
 ### To deploy one function
 ```bash
 gcloud functions deploy preview \
@@ -43,7 +54,6 @@ gcloud functions deploy preview \
     --entry-point=generate_preview_content \
     --env-vars-file .secrets.yaml
 ```
-
 
 ## Infrastructure
 For the most part, this app uses Google Cloud services. 
