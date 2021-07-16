@@ -61,18 +61,22 @@ input#topic-field {
   color: white;
   font-size: 2rem;
   border: 0.3rem white solid;
-  background-color: #F66;
+  background-color: #84E9F4;
   font-family: "Courier New", monospace;
   padding: 1rem 2rem;
   font-weight: bold;
   text-transform: uppercase;
   letter-spacing: 0.1rem;
   box-shadow: inset 0 0 1rem #00000085;
-/*  transition: all 0.1s;
-*/}
+  transition: all 0.15s;
+}
 
-/*input#topic-field.loading {
-  color: #F66;
+/*input#topic-field.push-text-right {
+  text-indent: 100vw;
+}
+
+input#topic-field.push-text-left {
+  text-indent: -100vw;
 }*/
 
 img#topic-refresh {
@@ -80,8 +84,8 @@ img#topic-refresh {
   height: 2rem;
   right: 1rem;
   top: 1.4rem;
-  background-color: #F66;
-  box-shadow: 0.1rem 0.1rem 0.5rem 0.25rem #F66;
+  background-color: #84E9F4;
+  box-shadow: 0.1rem 0.1rem 0.5rem 0.25rem #84E9F4;
 }
 
 img#topic-refresh:hover {
@@ -96,6 +100,7 @@ img#topic-refresh:active {
 
 div#make-button-area {
   display: relative;  /*for positioning the status text*/
+  padding: 0 1rem;
 }
 
 button#make-button {
@@ -103,10 +108,12 @@ button#make-button {
   font-size: 2rem;
   width: 25vw;
   height: 25vw;
+  max-width: 10rem;
+  max-height: 10rem;
   border-radius: 12.5vw;
   margin: 2rem;
   border: 0.3rem white solid;
-  background-color: #84E9F4;
+  background-color: #F66;
   font-family: "Courier New", monospace;
   font-weight: bold;
   text-transform: uppercase;
@@ -149,9 +156,28 @@ button#make-button.working {
   }
 }
 
+button#make-button.failed {
+  cursor: wait;
+  background-image: url("/gif/lost_gif_1.gif");
+  background-size: 300px;
+  border-style: dashed;
+  font-size: 0;
+  opacity: 0.5;
+}
+button#make-button:hover {
+  cursor: wait;
+  box-shadow: 0.5rem 0.5rem 0.5rem 0rem #0000004a;
+  transform: scale(1.00);
+}
+button#make-button:active {
+  cursor: wait;
+  box-shadow: 0.5rem 0.5rem 0.5rem 0rem #0000004a;
+  transform: scale(1.00);
+}
+
 p#status {
-  position: relative;
-  top: -9.5rem;
+/*  position: relative;
+  top: -9.5rem;*/
   font-size: 1.5rem;
   font-weight: bold;
   text-shadow: -0.1rem -0.1rem #FFF;
@@ -188,7 +214,7 @@ button#cancel-make-button:active {
 footer {
   position: fixed;
   bottom: 0;
-  width: 100%;
+  width: calc(100vw - 2rem);
   padding: 1rem;
 }
 

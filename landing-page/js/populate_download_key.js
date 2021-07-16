@@ -1,4 +1,4 @@
-// Populate download key
+// Populate Download Key
 var topic_span = document.getElementById('topic');
 var download_key_a = document.getElementById('download_link');
 var query = window.location.search.substring(1);
