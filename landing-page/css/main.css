@@ -24,6 +24,7 @@ body {
   max-width: 800px;
   margin: 0 auto;
   background-color: #F4E2B3;
+  
   font-family: "Courier New", monospace;
   text-align: center;
 }
@@ -93,7 +94,11 @@ img#topic-refresh:active {
   cursor: pointer;
 }
 
-button#preview-button {
+div#make-button-area {
+  display: relative;  /*for positioning the status text*/
+}
+
+button#make-button {
   color: white;
   font-size: 2rem;
   width: 25vw;
@@ -111,30 +116,29 @@ button#preview-button {
   transition: all 0.1s;
 }
 
-button#preview-button:hover {
+button#make-button:hover {
   cursor: pointer;
   box-shadow: 0.75rem 0.75rem 0.75rem 0rem #0000004a;
   transform: scale(1.05);
 }
 
-button#preview-button:active {
+button#make-button:active {
   cursor: pointer;
   box-shadow: 0.25rem 0.25rem 0.25rem 0rem #0000004a;
   transform: scale(0.95);
 }
 
-button#preview-button.working {
-  width: 20vw;
-  height: 20vw;
-  border-radius: 10vw;
+button#make-button.working {
   cursor: wait;
-  background-image: url("math_gif_1.gif");
+  background-image: url("/gif/math_gif_1.gif");
+  background-size: 300px;
   border-style: dashed;
   font-size: 0;
   animation-name: spin;
-  animation-duration: 10000ms;
+  animation-duration: 12000ms;
   animation-iteration-count: infinite;
   animation-timing-function: linear; 
+  opacity: 0.5;
 }
 @keyframes spin {
   from {
@@ -145,13 +149,53 @@ button#preview-button.working {
   }
 }
 
-p {
+p#status {
+  position: relative;
+  top: -9.5rem;
+  font-size: 1.5rem;
   font-weight: bold;
-  text-shadow: -0.2rem -0.2rem #FFF;
+  text-shadow: -0.1rem -0.1rem #FFF;
+}
+
+button#cancel-make-button {
+  position: relative;
+  top: -7rem;
+  color: white;
+  background: none;
+  border: none;
+  font-size: 5rem;
+  text-shadow: 0.5rem 0.5rem 0.5rem #0000004a;
+  transition: all 0.1s;
+}
+
+button#cancel-make-button:hover {
+  cursor: pointer;
+  text-shadow: 0.75rem 0.75rem 0.75rem #0000004a;
+  transform: scale(1.05);
+}
+
+button#cancel-make-button:active {
+  cursor: pointer;
+  text-shadow: 0.25rem 0.25rem 0.25rem #0000004a;
+  transform: scale(0.95);
 }
 
 #call-to-action{
   display: none;
 }
+
+
+footer {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  padding: 1rem;
+}
+
+footer a:visited {
+  color: black;
+}
+
+
 
 

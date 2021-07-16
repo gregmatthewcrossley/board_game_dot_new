@@ -8,17 +8,15 @@
     <title>boardgame.new</title>
 
     <!-- favicons -->
-    <link rel="icon" href="/favicon.ico"><!-- 32×32 -->
-    <link rel="icon" href="/icon.svg" type="image/svg+xml">
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png"><!-- 180×180 -->
-    <link rel="manifest" href="/manifest.webmanifest">
+    <link rel="icon" href="/icons/favicon.ico"><!-- 32×32 -->
+    <link rel="icon" href="/icons/icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png"><!-- 180×180 -->
+    <link rel="manifest" href="/icons/manifest.webmanifest">
 
     <!-- stylesheet -->
-    <link rel="stylesheet" href="main.css">
-    <link rel="stylesheet" href="autoComplete.css">
+    <link rel="stylesheet" href="/css/main.css">
+    <link rel="stylesheet" href="/css/autoComplete.css">
 
-    <!-- Stripe's JS Library -->
-    <script src="https://js.stripe.com/v3/"></script>
   </head>
   <body>
     <!-- 
@@ -30,10 +28,14 @@
     <h3 id="input-prompt-phrase">make a board game about almost anything, like</h3>
     <div id="topic-field-container" class="autoComplete_wrapper">
       <input type="text" id="topic-field" autocorrect="off" autocomplete="off" autocapitalize="off" onfocus="this.value=''" >
-      <img src="refresh.svg" id="topic-refresh">
+      <img src="/svg/refresh.svg" id="topic-refresh">
     </div>
     
-    <button id="preview-button">make it!</button>
+    <div id="make-button-area">
+      <button id="make-button">make it!</button>
+      <p id="status" style="display:none;"></p>
+      <button id="cancel-make-button" style="display:none;" aria-label="stop making game">×</button>
+    </div>
     
     <p id="preview">
     </p>
@@ -45,16 +47,21 @@
       <p>Your email will only be used to send you a receipt. Nothing else, promise!</p>
     </section>
 
+    <footer>
+      © 2021 <a href="https://ca.linkedin.com/in/greg-matthew-crossley-a465411">Greg Matthew Crossley</a> |
+      <a href="hows_it_work.html">how's it work?</a> |
+      <a href="help.html">help</a>
+    </footer>
 
     <!-- SCRIPTS -->
-    <!-- Random Topic and Autocomplete Library -->
+    <!-- Topic Field -->
     <script src="https://cdn.jsdelivr.net/npm/@tarekraafat/autocomplete.js@10.1.5/dist/autoComplete.min.js"></script>
-    <script src="topicInputConfig.js"></script>
-
-    <!-- Preview Script -->
-    <script src="preview_game.js"></script>
-    <!-- Stripe Checkout Script -->
-    <script src="stripe_checkout.js"></script>
+    <script src="/js/topicInputConfig.js"></script>
+    <!-- Make Button -->
+    <script src="/js/makeButtonConfig.js"></script>
+    <!-- Stripe Checkout -->
+    <script src="https://js.stripe.com/v3/"></script>
+    <script src="/js/stripe_checkout.js"></script>
 
 
   </body>

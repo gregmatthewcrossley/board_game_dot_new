@@ -25,12 +25,12 @@ FunctionsFramework.http("retrieve_vetted_topics") do |request|
   end
 end
 
-# Vett a topic name
+# Check whether a topic exists
 # Local testing: 
 #   export GOOGLE_APPLICATION_CREDENTIALS="/Users/gmc/Code/board_game_dot_new/google_application_credentials.json"
-#   bundle exec functions-framework-ruby --port 8002 --target retrieve_vetted_topics
+#   bundle exec functions-framework-ruby --port 8002 --target topic_existence_check
 #   http://localhost:8001/
-FunctionsFramework.http("vett_topic") do |request|
+FunctionsFramework.http("topic_existence_check") do |request|
   begin # for error reporting
     # sanitize the topic string provided by the user
     topic = CGI.escape_html(request.params["topic"])

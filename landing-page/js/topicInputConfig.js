@@ -1,7 +1,8 @@
 // topicInputConfig.js
 // Handles retrieivng a list of pre-vetted topics, 
-// populating the input field with a random topic and configuring the autocomplete feature
-// and configuring and initializing the autocomplete library
+// populating the input field with a random topic, 
+// configuring and initializing the autocomplete library
+// and other behavior
 
 fetch('/functions/topics')
   .then(function (response) {
