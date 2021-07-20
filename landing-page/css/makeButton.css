@@ -1,0 +1,122 @@
+/*
+  Make Button Styling
+*/
+div#make-button-area {
+  position: relative;  /*for positioning the status text*/
+  padding: 0 1rem;
+  text-align: center;
+  height: 20rem;
+}
+
+button#make-button {
+  color: white;
+  transform-origin: center;
+  font-size: 2rem;
+  width: 25vw;
+  height: 25vw;
+  opacity: 0;
+  max-width: 10rem;
+  max-height: 10rem;
+  border-radius: 12.5vw;
+  margin: 2rem;
+  border: 0.3rem white solid;
+  background-color: #F66;
+  font-family: "Courier New", monospace;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.1rem;
+  line-height: 2rem;
+  box-shadow: 0.5rem 0.5rem 0.5rem 0rem #0000004a;
+  transition: opacity 0.1s, 
+              box-shadow 0.1s,
+              transform 0.1s;
+}
+
+button#make-button[data-state="ready"], 
+button#make-button[data-state="working"],
+button#make-button[data-state="failed"] {
+/*  font-size: 2rem;
+  width: 25vw;
+  height: 25vw;*/
+  opacity: 1;
+}
+
+button#make-button[data-state="ready"]:hover {
+  cursor: pointer;
+  box-shadow: 0.75rem 0.75rem 0.75rem 0rem #0000004a;
+  transform: scale(1.05);
+}
+
+button#make-button[data-state="ready"]:active {
+  cursor: pointer;
+  box-shadow: 0.25rem 0.25rem 0.25rem 0rem #0000004a;
+  transform: scale(0.95);
+}
+
+button#make-button[data-state="working"] {
+  cursor: wait;
+  background-image: url("/gif/math_gif_1.gif");
+  background-size: 50vw;
+  border-style: dashed;
+  font-size: 0;
+  animation-name: spin;
+  animation-duration: 12000ms;
+  animation-iteration-count: infinite;
+  animation-timing-function: linear; 
+  opacity: 0.5;
+}
+@keyframes spin {
+  from {
+    transform:rotate(0deg);
+  }
+  to {
+    transform:rotate(360deg);
+  }
+}
+
+button#make-button[data-state="failed"] {
+  cursor: wait;
+  background-image: url("/gif/lost_gif_1.gif");
+  background-size: 300px;
+  border-style: dashed;
+  font-size: 0;
+  opacity: 0.5;
+}
+
+p#status {
+  float: left;
+  position: relative;
+  font-size: 1.5rem;
+  font-weight: bold;
+  text-shadow: -0.1rem -0.1rem #FFF;
+  top: -9rem;
+  width: 100%;
+  font-size: 1.5rem;
+  font-weight: bold;
+  text-shadow: -0.1rem -0.1rem #FFF;
+}
+
+button#cancel-make-button {
+  display: block;
+  position: relative;
+  top: -7rem;
+  width: 100%;
+  color: white;
+  background: none;
+  border: none;
+  font-size: 5rem;
+  text-shadow: 0.5rem 0.5rem 0.5rem #0000004a;
+  transition: all 0.1s;
+}
+
+button#cancel-make-button:hover {
+  cursor: pointer;
+  text-shadow: 0.75rem 0.75rem 0.75rem #0000004a;
+  transform: scale(1.05);
+}
+
+button#cancel-make-button:active {
+  cursor: pointer;
+  text-shadow: 0.25rem 0.25rem 0.25rem #0000004a;
+  transform: scale(0.95);
+}

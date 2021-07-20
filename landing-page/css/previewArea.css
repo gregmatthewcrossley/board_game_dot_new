@@ -1,0 +1,15 @@
+/*
+  Preview Area Styling
+*/
+
+div#preview-area {
+  display: block;
+  height: 7rem;
+/*  font-size: 0; 
+*/}
+
+div#preview-area > img.preview-image {
+  width: 3rem;
+  height: 3rem;
+  background-color: #00000010;
+}

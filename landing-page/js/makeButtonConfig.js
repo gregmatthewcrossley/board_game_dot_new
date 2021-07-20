@@ -1,111 +1,168 @@
 // makeButtonConfig.js
 // Adds some triggers and events to the "make it" button
 
-// DOM elements
-const makeButton = document.getElementById('make-button');
-const topicField = document.getElementById('topic-field');
-const statusMessage = document.getElementById('status');
-const cancelMakeButton = document.getElementById('cancel-make-button');
-const previewArea = document.getElementById('preview');
-const callToActionArea = document.getElementById('call-to-action');
+// keep the 'state' of the makeButton matched to the topicField
+new MutationObserver(function(mutations) {
+  makeButton.dataset.state = topicField.dataset.state;
+}).observe(
+  topicField, 
+  { 
+    attributes: true, 
+    attributeFilter: ['data-state'] 
+  }
+);
 
+// 'Make' button
 makeButton.addEventListener('click', function() {
-  
-  styleButtonAsWorking();
+  if (makeButton.dataset.state = 'ready') {
+    // Style changes
+    lockTopicInput();
+    setButtonToWorking();
+    showCancelMakeButton();
+    // Game building functions
+    buildGame();
+    // Style changes
 
-  topicExistanceCheck(topicField.value);
-
-  // 
-  // fetch(request_uri)
-  //   .then(function (response) {
-  //     return response.json();
-  //   })
-  //   .then(function (board_game_preview) {
-  //     // add the generated game's name to the preview area
-  //     previewArea.textContent = board_game_preview.name;
-  //     // show the call to action (stripe checkout session creation form)
-  //     callToActionArea.setAttribute('style', 'display:block');
-  //   })
-  //   .catch(function (err) {
-  //       console.log("Something went wrong!", err);
-  //   });
+  }
 });
 
-function styleButtonAsWorking() {
-
-  // restyle the button on click
-  makeButton.classList.add('working');
-  makeButton.classList.remove('failed');
-
-  // lock the input field
-  topicField.setAttribute('disabled', 'true');
-
-  // show a status text under the spinner
-  statusMessage.textContent = 'researching ...';
-  statusMessage.setAttribute('style', 'display:block');
-  
-  // show the cancel button
-  cancelMakeButton.setAttribute('style', 'display:inline');
-
-  // re-hide the call to action area, if shown
-  callToActionArea.removeAttribute('style');
+// Game building functions
+function buildGame() {
+  topicExistanceCheck();
 }
 
-function topicExistanceCheck(topic) {
+function topicExistanceCheck() {
   statusMessage.textContent = 'looking up ...';
   // send the topic to a google function to verify its existance
+  var topic = topicField.value;
   request_uri = '/functions/topic_existence_check?topic='+encodeURIComponent(topic);
   fetch(request_uri)
     .then(function (response) {
-      return response.json();
+      if (response.ok) {
+        topicWordCoundCheck();
+        debugger;
+      } else {
+        throw new Error("topicExistanceCheck() didn't receive a 200 response");
+      }
     })
-    // .then(function (board_game_preview) {
-    //   // add the generated game's name to the preview area
-    //   previewArea.textContent = board_game_preview.name;
-    //   // show the call to action (stripe checkout session creation form)
-    //   callToActionArea.setAttribute('style', 'display:block');
-    // })
     .catch(function (err) {
+      setButtonToFailed();
       statusMessage.textContent = "hmm, '" + topic + "' is a bit too obscure!";
-      styleButtonAsFailed();
-      document.getElementById('topic-field').value = "";
+      console.log(err);
     });
 }
 
-
-// Cancel
-cancelMakeButton.addEventListener('click', function() {
-  styleButtonAsDefault();
-  document.getElementById('topic-refresh').click();
-});
-
-// cancelMakeButton.addEventListener('click', function() {
-//   styleButtonAsDefault();
-// });
-
-function styleButtonAsFailed(){
-  // restyle the button
-  makeButton.classList.remove('working');
-  makeButton.classList.add('failed');
-
-  // unlock the input field
-  topicField.removeAttribute('disabled');
-  
-  // hide the cancel button
-  cancelMakeButton.setAttribute('style', 'display:none');
+function topicWordCoundCheck() {
+  statusMessage.textContent = 'word-counting ...';
+  // send the topic to a google function to verify its existance
+  var topic = topicField.value;
+  request_uri = '/functions/topic_word_count_check?topic='+encodeURIComponent(topic);
+  fetch(request_uri)
+    .then(function (response) {
+      if (response.ok) {
+        topicImageCheck();
+      } else {
+        throw new Error("topicWordCoundCheck() didn't receive a 200 response");
+      }
+    })
+    .catch(function (err) {
+      setButtonToFailed();
+      statusMessage.textContent = "hmm, not enough has been written about '" + topic + "'!";
+      console.log(err);
+    });
 }
 
-function styleButtonAsDefault(){
-  // restyle the button
-  makeButton.classList.remove('working');
-  makeButton.classList.remove('failed');
+function topicImageCheck() {
+  statusMessage.textContent = 'looking for pretty pictures ...';
+  // send the topic to a google function to verify its existance
+  var topic = topicField.value;
+  request_uri = '/functions/topic_image_check?topic='+encodeURIComponent(topic);
+  fetch(request_uri)
+    .then(function (response) {
+      if (response.ok) {
+        topicAnalysis();
+      } else {
+        throw new Error("topicImageCheck() didn't receive a 200 response");
+      }
+    })
+    .catch(function (err) {
+      setButtonToFailed();
+      statusMessage.textContent = "hmm, there aren't any great pictures of '" + topic + "'!";
+      console.log(err);
+    });
+}
 
-  // unlock the input field
-  topicField.removeAttribute('disabled');
+function topicAnalysis() {
+  statusMessage.textContent = 'analysing ...';
+  // send the topic to a google function to verify its existance
+  var topic = topicField.value;
+  request_uri = '/functions/topic_analysis?topic='+encodeURIComponent(topic);
+  fetch(request_uri)
+    .then(function (response) {
+      if (response.ok) {
+        gameComponentCreation();
+      } else {
+        throw new Error("topicAnalysis() didn't receive a 200 response");
+      }
+    })
+    .catch(function (err) {
+      setButtonToFailed();
+      statusMessage.textContent = "hmm, '" + topic + "' is a bit too complex!";
+      console.log(err);
+    });
+}
 
-  // hide the status text
-  statusMessage.setAttribute('style', 'display:none');
-  
-  // hide the cancel button
+function gameComponentCreation() {
+  statusMessage.textContent = 'creating game components ...';
+  // send the topic to a google function to verify its existance
+  var topic = topicField.value;
+  request_uri = '/functions/topic_analysis?topic='+encodeURIComponent(topic);
+  fetch(request_uri)
+    .then(function (response) {
+      if (response.ok) {
+        // preview the image
+      } else {
+        throw new Error("gameComponentCreation() didn't receive a 200 response");
+      }
+    })
+    .catch(function (err) {
+      setButtonToFailed();
+      statusMessage.textContent = "uh-oh, there was a problem creating ###!";
+      console.log(err);
+    });
+}
+
+// 'Cancel' button
+cancelMakeButton.addEventListener('click', function() {
+  hideCancelMakeButton();
+  unlockTopicInput();
+  setButtonToReady();
+  topicRefresh.click();
+});
+
+
+
+
+// Style Functions
+function setButtonToWorking() {
+  makeButton.dataset.state = 'working';
+}
+
+function showCancelMakeButton(){
+  cancelMakeButton.setAttribute('style', 'display:initial');
+  statusMessage.setAttribute('style', 'display:initial');
+}
+
+function hideCancelMakeButton(){
   cancelMakeButton.setAttribute('style', 'display:none');
+  statusMessage.setAttribute('style', 'display:none');
+  statusMessage.textContent = '';
+}
+
+function setButtonToFailed(){
+  makeButton.dataset.state = 'failed';
+}
+
+function setButtonToReady(){
+  makeButton.dataset.state = 'ready';
 }

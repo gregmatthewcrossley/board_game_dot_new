@@ -1,23 +1,6 @@
-/*.autoComplete_wrapper {
-  display: inline-block;
-  position: relative;
-}*/
-
-/*.autoComplete_wrapper > input {
-  width: 370px;
-  height: 40px;
-  padding-left: 10px;
-  font-size: 1rem;
-  color: rgb(116, 116, 116);
-  border-radius: 4px;
-  border: 1px solid rgba(33, 33, 33, 0.2);
-  outline: none;
-}*/
-
-/*.autoComplete_wrapper > input::placeholder {
-  color: rgba(123, 123, 123, 0.5);
-  transition: all 0.3s ease;
-}*/
+/*
+  Styling for the auto-complete menu attached to the topic input field
+*/
 
 .autoComplete_wrapper > ul {
   position: absolute;
@@ -74,9 +57,3 @@
 .autoComplete_wrapper > ul > li[aria-selected="true"] {
   background-color: rgba(123, 123, 123, 0.1);
 }
-
-/*@media only screen and (max-width: 600px) {
-  .autoComplete_wrapper > input {
-    width: 18rem;
-  }
-}*/

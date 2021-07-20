@@ -4,43 +4,51 @@
     <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
     <meta content="utf-8" http-equiv="encoding">
 
-    <!-- name -->
+    <!-- Name -->
     <title>boardgame.new</title>
 
-    <!-- favicons -->
+    <!-- Favicons -->
     <link rel="icon" href="/icons/favicon.ico"><!-- 32×32 -->
     <link rel="icon" href="/icons/icon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png"><!-- 180×180 -->
     <link rel="manifest" href="/icons/manifest.webmanifest">
 
-    <!-- stylesheet -->
+    <!-- Stylesheets -->
     <link rel="stylesheet" href="/css/main.css">
     <link rel="stylesheet" href="/css/autoComplete.css">
-
+    <link rel="stylesheet" href="/css/topicInput.css">
+    <link rel="stylesheet" href="/css/makeButton.css">
+    <link rel="stylesheet" href="/css/previewArea.css">
+    <link rel="stylesheet" href="/css/callToAction.css">
   </head>
+
   <body>
-    <!-- 
-    <img
-    id="hero-icon"
-    src="big-b.png"
-    alt="Big 'B' icon for this page (boardgame.new)" /> -->
     <h1>boardgame.new</h1>
     <h3 id="input-prompt-phrase">make a board game about almost anything, like</h3>
     <div id="topic-field-container" class="autoComplete_wrapper">
-      <input type="text" id="topic-field" autocorrect="off" autocomplete="off" autocapitalize="off" onfocus="this.value=''" >
+      <input type="text" id="topic-field" autocorrect="off" autocomplete="off" autocapitalize="off" data-state = "blank" >
       <img src="/svg/refresh.svg" id="topic-refresh">
     </div>
     
     <div id="make-button-area">
-      <button id="make-button">make it</button>
+      <button id="make-button" data-state = "ready">make</button>
       <p id="status" style="display:none;"></p>
       <button id="cancel-make-button" style="display:none;" aria-label="stop making game">×</button>
-      <button id="topic-refresh-after-failure" style="display:none;" aria-label="refresh the topic">try something else</button>
     </div>
     
-    <p id="preview">
-    </p>
+    <!-- Preview Area -->
+    <div id="preview-area">
+      <img class="preview-image" id="game-box"/>
+      <img class="preview-image" id="game-money"/>
+      <img class="preview-image" id="game-instructions"/>
+      <img class="preview-image" id="assembly-instructions"/>
+      <img class="preview-image" id="game-board"/>
+      <img class="preview-image" id="question-cards"/>
+      <img class="preview-image" id="chance-cards"/>
+      <img class="preview-image" id="game-pieces"/>
+    </div>
 
+    <!-- Call to Action -->
     <section id="call-to-action">
       <p>Want to buy? It's only $5!</p>
       <input type="email" id="email-field" placeholder="email address">
@@ -48,23 +56,26 @@
       <p>Your email will only be used to send you a receipt. Nothing else, promise!</p>
     </section>
 
+    <!-- Footer -->
     <footer>
       © 2021 <a href="https://ca.linkedin.com/in/greg-matthew-crossley-a465411">Greg Matthew Crossley</a> |
       <a href="hows_it_work.html">how's it work?</a> |
       <a href="help.html">help</a>
     </footer>
-
-    <!-- SCRIPTS -->
-    <!-- Topic Field -->
-    <script src="https://cdn.jsdelivr.net/npm/@tarekraafat/autocomplete.js@10.1.5/dist/autoComplete.min.js"></script>
-    <script src="/js/topicInputConfig.js"></script>
-    <!-- Make Button -->
-    <script src="/js/makeButtonConfig.js"></script>
-    <!-- Stripe Checkout -->
-    <script src="https://js.stripe.com/v3/"></script>
-    <script src="/js/stripe_checkout.js"></script>
-
-
   </body>
+
+  <!-- SCRIPTS -->
+  <!-- DOM Element Constants -->
+  <script src="/js/domElementConstants.js"></script>
+  <!-- Topic Field -->
+  <script src="https://cdn.jsdelivr.net/npm/@tarekraafat/autocomplete.js@10.1.5/dist/autoComplete.min.js"></script>
+  <script src="/js/topicInputConfig.js"></script>
+  <!-- Make Button -->
+  <script src="/js/makeButtonConfig.js"></script>
+  <!-- Preview Area -->
+  <script src="/js/previewAreaConfig.js"></script>
+  <!-- Stripe Checkout -->
+  <script src="https://js.stripe.com/v3/"></script>
+  <script src="/js/stripe_checkout.js"></script>
 </html>
 
