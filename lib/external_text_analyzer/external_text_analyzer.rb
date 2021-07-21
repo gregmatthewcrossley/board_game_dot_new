@@ -1,5 +1,62 @@
 module ExternalTextAnalyzer
 
+  class GoogleNaturalLanguage
+
+    def initialize(text)
+      raise ArgumentError, 'must pass text (String) when initializing' unless text.is_a?(String)
+      @text = text
+
+      # initiate Google Cloud Language client
+      begin
+        @client = Google::Cloud::Language.language_service
+      rescue RuntimeError => e
+        raise e, "#{e.message} \n\nHint: check to see whether an environment variable called 'GOOGLE_APPLICATION_CREDENTIALS' contains a path to a JSON file with those credentials."
+      end
+    end
+
+    def analysis
+      # https://googleapis.dev/ruby/google-cloud-language-v1/latest/Google/Cloud/Language/V1/LanguageService/Client.html#annotate_text-instance_method
+      @analysis_response ||= @client.annotate_text(
+        document: {
+          content: @text, 
+          type: :PLAIN_TEXT
+        },
+        features: {
+          classify_text:              false,
+          extract_document_sentiment: true,
+          extract_entities:           true,
+          extract_entity_sentiment:   false,
+          extract_syntax:             true
+        })
+
+      @analysis_result ||= AnalysisResult.new(
+          @analysis_response.sentences.select { |s|
+            %w(. ? ! ").include?(s.text.content[-1]) # drop any sentences that aren't punctuated
+          }.map { |s|
+            Sentence.new(
+              s.text.content, 
+              s.sentiment.score
+            )
+          },
+          @analysis_response.entities.select { |e|
+            ExternalTextAnalyzer::Entity::ENTITY_TYPE_WHITELIST.include?(e.type) # drop any entities of the wrong type
+          }.map { |e|
+            Entity.new(
+              e.name, 
+              e.salience,
+              e.type.to_sym, 
+              (e.mentions.first['type'] == :PROPER)
+            )
+          }.uniq { |e| # remove any duplicates
+            e.string
+          }
+        )
+    end
+
+  end
+
+
+
   class AnalysisResult
 
     attr_reader :sentences, :entities
@@ -53,61 +110,6 @@ module ExternalTextAnalyzer
     end
 
     alias_method :is_proper?, :is_proper
-
-  end
-
-  class GoogleNaturalLanguage
-
-    def initialize(text)
-      raise ArgumentError, 'must pass text (String) when initializing' unless text.is_a?(String)
-      @text = text
-
-      # initiate Google Cloud Language client
-      begin
-        @client = Google::Cloud::Language.language_service
-      rescue RuntimeError => e
-        raise e, "#{e.message} \n\nHint: check to see whether an environment variable called 'GOOGLE_APPLICATION_CREDENTIALS' contains a path to a JSON file with those credentials."
-      end
-    end
-
-    def analysis
-      # https://googleapis.dev/ruby/google-cloud-language-v1/latest/Google/Cloud/Language/V1/LanguageService/Client.html#annotate_text-instance_method
-      @analysis_response ||= @client.annotate_text(
-        document: {
-          content: @text, 
-          type: :PLAIN_TEXT
-        },
-        features: {
-          classify_text:              false,
-          extract_document_sentiment: true,
-          extract_entities:           true,
-          extract_entity_sentiment:   false,
-          extract_syntax:             true
-        })
-
-      @analysis_result ||= AnalysisResult.new(
-          @analysis_response.sentences.select { |s|
-            %w(. ? ! ").include?(s.text.content[-1]) # drop any sentences that aren't punctuated
-          }.map { |s|
-            Sentence.new(
-              s.text.content, 
-              s.sentiment.score
-            )
-          },
-          @analysis_response.entities.select { |e|
-            ExternalTextAnalyzer::Entity::ENTITY_TYPE_WHITELIST.include?(e.type) # drop any entities of the wrong type
-          }.map { |e|
-            Entity.new(
-              e.name, 
-              e.salience,
-              e.type.to_sym, 
-              (e.mentions.first['type'] == :PROPER)
-            )
-          }.uniq { |e| # remove any duplicates
-            e.string
-          }
-        )
-    end
 
   end
 

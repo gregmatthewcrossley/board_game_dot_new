@@ -99,6 +99,7 @@ function topicAnalysis() {
     .then(function (response) {
       if (response.ok) {
         gameComponentCreation();
+        statusMessage.textContent = 'analysis complete!';
       } else {
         throw new Error("topicAnalysis() didn't receive a 200 response");
       }

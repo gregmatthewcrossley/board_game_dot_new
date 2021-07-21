@@ -17,8 +17,9 @@ end
 FunctionsFramework.http("retrieve_vetted_topics") do |request|
   begin # for error reporting  
     # return JSON with topic string
+    binding.pry
     return {
-      vetted_topics: ExternalTextSource::WikipediaApi::FEATURED_ARTICLE_TITLES
+      vetted_topics: ExternalTextSource::Any.vetted_topics
     }.to_json
   rescue StandardError => e
     Google::Cloud::ErrorReporting.report e
@@ -35,7 +36,7 @@ FunctionsFramework.http("topic_existence_check") do |request|
     # sanitize the topic string provided by the user
     topic = CGI.escape_html(request.params["topic"])
     # return 200 if the topic exists, 404 otherwise
-    text_source = ExternalTextSource::WikipediaApi.new(topic) rescue nil
+    text_source = ExternalTextSource::Any.new(topic) rescue nil
     if text_source
       ::Rack::Response.new nil, 200
     else
@@ -56,7 +57,7 @@ FunctionsFramework.http("topic_word_count_check") do |request|
     # sanitize the topic string provided by the user
     topic = CGI.escape_html(request.params["topic"])
     # return 200 if the topic is long enough, 404 otherwise
-    text_source = ExternalTextSource::WikipediaApi.new(topic) rescue nil
+    text_source = ExternalTextSource::Any.new(topic) rescue nil
     if text_source && text_source.long_enough?
       ::Rack::Response.new nil, 200
     else
@@ -77,7 +78,7 @@ FunctionsFramework.http("topic_image_check") do |request|
     # sanitize the topic string provided by the user
     topic = CGI.escape_html(request.params["topic"])
     # return 200 if an image for the topic exists, 404 otherwise
-    image_source = ExternalImageSource::WikipediaApi.new(topic) rescue nil
+    image_source = ExternalImageSource::Any.new(topic) rescue nil
     if image_source
       ::Rack::Response.new nil, 200
     else
@@ -98,8 +99,8 @@ FunctionsFramework.http("topic_analysis") do |request|
     # sanitize the topic string provided by the user
     topic = CGI.escape_html(request.params["topic"])
     # return 200 if the topic is long enough, 404 otherwise
-    text_source = ExternalTextSource::WikipediaApi.new(topic) rescue nil
-    if text_source && text_source.long_enough?
+    analysis = ExternalTextAnalyzer::Any.new(topic).analysis rescue nil
+    if analysis
       ::Rack::Response.new nil, 200
     else
       ::Rack::Response.new nil, 404
