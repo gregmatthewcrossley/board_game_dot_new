@@ -22,6 +22,10 @@ module ExternalTextSource
       clean_up_text
     end
 
+    def long_enough?
+      @text.split(' ').count >= MINIMUM_WORDS_FOR_TEXT_SOURCE
+    end
+
 
     private
 

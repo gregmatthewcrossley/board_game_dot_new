@@ -29,19 +29,87 @@ end
 # Local testing: 
 #   export GOOGLE_APPLICATION_CREDENTIALS="/Users/gmc/Code/board_game_dot_new/google_application_credentials.json"
 #   bundle exec functions-framework-ruby --port 8002 --target topic_existence_check
-#   http://localhost:8001/
+#   http://localhost:8002/
 FunctionsFramework.http("topic_existence_check") do |request|
   begin # for error reporting
     # sanitize the topic string provided by the user
     topic = CGI.escape_html(request.params["topic"])
-    # return JSON with topic string
-    return {
-      vetted_topics: ExternalTextSource::WikipediaApi::FEATURED_ARTICLE_TITLES
-    }.to_json
+    # return 200 if the topic exists, 404 otherwise
+    text_source = ExternalTextSource::WikipediaApi.new(topic) rescue nil
+    if text_source
+      ::Rack::Response.new nil, 200
+    else
+      ::Rack::Response.new nil, 404
+    end
   rescue StandardError => e
     Google::Cloud::ErrorReporting.report e
   end
 end
+
+# Check whether a topic has enough words
+# Local testing: 
+#   export GOOGLE_APPLICATION_CREDENTIALS="/Users/gmc/Code/board_game_dot_new/google_application_credentials.json"
+#   bundle exec functions-framework-ruby --port 8003 --target topic_word_count_check
+#   http://localhost:8003/
+FunctionsFramework.http("topic_word_count_check") do |request|
+  begin # for error reporting
+    # sanitize the topic string provided by the user
+    topic = CGI.escape_html(request.params["topic"])
+    # return 200 if the topic is long enough, 404 otherwise
+    text_source = ExternalTextSource::WikipediaApi.new(topic) rescue nil
+    if text_source && text_source.long_enough?
+      ::Rack::Response.new nil, 200
+    else
+      ::Rack::Response.new nil, 404
+    end
+  rescue StandardError => e
+    Google::Cloud::ErrorReporting.report e
+  end
+end
+
+# Check whether a topic has a main image
+# Local testing: 
+#   export GOOGLE_APPLICATION_CREDENTIALS="/Users/gmc/Code/board_game_dot_new/google_application_credentials.json"
+#   bundle exec functions-framework-ruby --port 8004 --target topic_image_check
+#   http://localhost:8004/
+FunctionsFramework.http("topic_image_check") do |request|
+  begin # for error reporting
+    # sanitize the topic string provided by the user
+    topic = CGI.escape_html(request.params["topic"])
+    # return 200 if an image for the topic exists, 404 otherwise
+    image_source = ExternalImageSource::WikipediaApi.new(topic) rescue nil
+    if image_source
+      ::Rack::Response.new nil, 200
+    else
+      ::Rack::Response.new nil, 404
+    end
+  rescue StandardError => e
+    Google::Cloud::ErrorReporting.report e
+  end
+end
+
+# Analyse a topic
+# Local testing: 
+#   export GOOGLE_APPLICATION_CREDENTIALS="/Users/gmc/Code/board_game_dot_new/google_application_credentials.json"
+#   bundle exec functions-framework-ruby --port 8005 --target topic_analysis
+#   http://localhost:8005/
+FunctionsFramework.http("topic_analysis") do |request|
+  begin # for error reporting
+    # sanitize the topic string provided by the user
+    topic = CGI.escape_html(request.params["topic"])
+    # return 200 if the topic is long enough, 404 otherwise
+    text_source = ExternalTextSource::WikipediaApi.new(topic) rescue nil
+    if text_source && text_source.long_enough?
+      ::Rack::Response.new nil, 200
+    else
+      ::Rack::Response.new nil, 404
+    end
+  rescue StandardError => e
+    Google::Cloud::ErrorReporting.report e
+  end
+end
+
+
 
 # Given game parameters (topic, player count, game length), returns 
 # JS that appends the landing page with "preview" content for a given topic.

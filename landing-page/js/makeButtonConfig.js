@@ -22,7 +22,6 @@ makeButton.addEventListener('click', function() {
     // Game building functions
     buildGame();
     // Style changes
-
   }
 });
 
@@ -40,7 +39,6 @@ function topicExistanceCheck() {
     .then(function (response) {
       if (response.ok) {
         topicWordCoundCheck();
-        debugger;
       } else {
         throw new Error("topicExistanceCheck() didn't receive a 200 response");
       }
