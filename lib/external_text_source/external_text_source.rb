@@ -26,24 +26,35 @@ module ExternalTextSource
       raise ArgumentError, "must pass a topic (a non-empty String)" unless topic.is_a?(String) && !topic.empty?
 
       # check persistant storage, use this if it exists
-      # TO-DO
+      if saved_text_source = ExternalPersistentStorage.retrieve_text_source(topic)
+        best_source = save_text_source
+      else
+        # try to initialize each subclass
+        all_sources = Any.all_source_classes.map do |klass|
+          klass.new(topic) rescue nil
+        end.compact
+        raise ArgumentError, "no external text source found for '#{topic}'" if all_sources.empty?
 
-      # try to initialize each subclass
-      all_sources = Any.all_source_classes.map do |klass|
-        klass.new(topic) rescue nil
-      end.compact
-      raise ArgumentError, "no external text source found for '#{topic}'" if all_sources.empty?
+        # take the one with the longest text
+        sources_and_word_counts = all_sources.map do |source|
+          [source, source.word_count]
+        end.to_h
+        best_source = sources_and_word_counts.key(sources_and_word_counts.values.max)
 
-      # take the one with the longest text
-      sources_and_word_counts = all_sources.map do |source|
-        [source, source.word_count]
-      end.to_h
-      best_source = sources_and_word_counts.key(sources_and_word_counts.values.max)
+        # attempt to store the text source
+        ExternalPersistentStorage.save_text_source(
+          best_source.title, 
+          best_source.text, 
+          best_source.word_count
+        )
+      end
 
-      # set the attributes
+      # set the accessor attributes
       @title      = best_source.title
       @text       = best_source.text
       @word_count = best_source.word_count
+
+      return self
     end
     
     def long_enough?

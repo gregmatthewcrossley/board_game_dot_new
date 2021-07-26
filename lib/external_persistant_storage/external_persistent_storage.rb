@@ -4,6 +4,6 @@ class ExternalPersistentStorage
   require_relative './storage_services/google_cloud_storage.rb'
   DEFAULT_STORAGE_SERVICE = GoogleCloudStorage
   
-  include DEFAULT_STORAGE_SERVICE
+  extend DEFAULT_STORAGE_SERVICE
 
 end
