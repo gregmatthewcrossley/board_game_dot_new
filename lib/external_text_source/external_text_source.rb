@@ -4,10 +4,17 @@ module ExternalTextSource
 
   class Any
 
-    SOURCES = [::WikipediaApi]
+    # This class is a parent class that loads multiple specific sources
+    # and, after attempting to initialize all of them, attempts to 
+    # pick and use the best one.
+
+    def self.all_source_classes
+      # a convenience method to list all the direct decendants of the Any class
+      ObjectSpace.each_object(::Class).select {|klass| klass < self }
+    end
 
     def self.vetted_topics
-      SOURCES.map do |klass|
+      all_source_classes.map do |klass|
         klass.vetted_topics
       end.flatten
     end
@@ -15,23 +22,23 @@ module ExternalTextSource
     attr_reader :title, :text, :word_count
 
     def initialize(topic)
-      binding.pry
       # validate the topic argument
       raise ArgumentError, "must pass a topic (a non-empty String)" unless topic.is_a?(String) && !topic.empty?
 
-      # check persistant storage
+      # check persistant storage, use this if it exists
       # TO-DO
 
       # try to initialize each subclass
-      all_sources = SOURCES.map do |klass|
+      all_sources = Any.all_source_classes.map do |klass|
         klass.new(topic) rescue nil
       end.compact
       raise ArgumentError, "no external text source found for '#{topic}'" if all_sources.empty?
 
       # take the one with the longest text
-      best_source = all_sources.map do |source|
+      sources_and_word_counts = all_sources.map do |source|
         [source, source.word_count]
-      end.to_h.key(hash.values.max)
+      end.to_h
+      best_source = sources_and_word_counts.key(sources_and_word_counts.values.max)
 
       # set the attributes
       @title      = best_source.title

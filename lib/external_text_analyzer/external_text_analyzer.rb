@@ -1,6 +1,40 @@
 module ExternalTextAnalyzer
 
-  class GoogleNaturalLanguage
+  class Any
+
+    # This class is a parent class that loads multiple specific sources
+    # and, after attempting to initialize all of them, attempts to 
+    # pick and use the best one.
+
+    def self.all_source_classes
+      # a convenience method to list all the direct decendants of the Any class
+      ObjectSpace.each_object(::Class).select {|klass| klass < self }
+    end
+
+    attr_reader :analysis
+
+    def initialize(text)
+      # validate the text
+      raise ArgumentError, 'must pass text (String) when initializing' unless text.is_a?(String)
+
+      # check persistant storage, use this if it exists
+      # TO-DO
+      
+      # try to initialize each subclass
+      all_sources = Any.all_source_classes.map do |klass|
+        klass.new(text) rescue nil
+      end.compact
+      raise ArgumentError, "no external analysis sources for '#{text}'" if all_sources.empty?
+
+      # use the first source with an analysis result
+      @analysis = all_sources.select do |s|
+        s.analysis rescue nil
+      end.first
+    end
+
+  end
+
+  class GoogleNaturalLanguage < Any
 
     def initialize(text)
       raise ArgumentError, 'must pass text (String) when initializing' unless text.is_a?(String)
@@ -59,6 +93,8 @@ module ExternalTextAnalyzer
 
   class AnalysisResult
 
+    # A construct to hold a generic analysis result
+
     attr_reader :sentences, :entities
 
     def initialize(sentences, entities)
@@ -71,6 +107,8 @@ module ExternalTextAnalyzer
   end
 
   class Sentence
+
+    # One of two parts of a generic analysis result (AnalysisResult)
 
     attr_reader :string, :sentiment
 
@@ -85,6 +123,8 @@ module ExternalTextAnalyzer
   end
 
   class Entity
+
+    # One of two parts of a generic analysis result (AnalysisResult)
 
     ENTITY_TYPE_WHITELIST = %w(
       PERSON

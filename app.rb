@@ -17,7 +17,6 @@ end
 FunctionsFramework.http("retrieve_vetted_topics") do |request|
   begin # for error reporting  
     # return JSON with topic string
-    binding.pry
     return {
       vetted_topics: ExternalTextSource::Any.vetted_topics
     }.to_json
@@ -99,7 +98,8 @@ FunctionsFramework.http("topic_analysis") do |request|
     # sanitize the topic string provided by the user
     topic = CGI.escape_html(request.params["topic"])
     # return 200 if the topic is long enough, 404 otherwise
-    analysis = ExternalTextAnalyzer::Any.new(topic).analysis rescue nil
+    text_source = ExternalTextSource::Any.new(topic) rescue nil # TO-DO: retrieve this from storage
+    analysis = ExternalTextAnalyzer::Any.new(text_source.text) rescue nil
     if analysis
       ::Rack::Response.new nil, 200
     else
