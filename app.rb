@@ -89,7 +89,7 @@ FunctionsFramework.http("topic_image_check") do |request|
 end
 
 # Analyse a topic
-# Local testing: 
+# Local testing:
 #   export GOOGLE_APPLICATION_CREDENTIALS="/Users/gmc/Code/board_game_dot_new/google_application_credentials.json"
 #   bundle exec functions-framework-ruby --port 8005 --target topic_analysis
 #   http://localhost:8005/
@@ -98,8 +98,9 @@ FunctionsFramework.http("topic_analysis") do |request|
     # sanitize the topic string provided by the user
     topic = CGI.escape_html(request.params["topic"])
     # return 200 if the topic is long enough, 404 otherwise
-    text_source = ExternalTextSource::Any.new(topic) rescue nil # TO-DO: retrieve this from storage
-    analysis = ExternalTextAnalyzer::Any.new(text_source.text) rescue nil
+    text_source = ExternalTextSource::Any.new(topic) rescue nil # should be fast, as it should have already been retrieved and saved to disk
+    return ::Rack::Response.new nil, 404 unless text_source
+    analysis = ExternalTextAnalyzer::Any.new(topic, text_source.source_text) rescue nil
     if analysis
       ::Rack::Response.new nil, 200
     else

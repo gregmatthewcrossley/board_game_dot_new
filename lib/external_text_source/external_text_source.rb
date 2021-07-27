@@ -19,21 +19,22 @@ module ExternalTextSource
       end.flatten
     end
 
-    attr_reader :title, :text, :word_count
+    attr_reader :title, :source_text, :word_count
 
     def initialize(topic)
       # validate the topic argument
       raise ArgumentError, "must pass a topic (a non-empty String)" unless topic.is_a?(String) && !topic.empty?
+      @topic = topic
 
       # check persistant storage, use this if it exists
-      if saved_text_source = ExternalPersistentStorage.retrieve_text_source(topic)
-        best_source = saved_text_source
+      if saved_text_source = ExternalPersistentStorage.retrieve_source_text(@topic)
+        best_source = saved_text_source # a Struct that responds to :title, :source_text and :word_count
       else
         # try to initialize each subclass
         all_sources = Any.all_source_classes.map do |klass|
-          klass.new(topic) rescue nil
+          klass.new(@topic) rescue nil
         end.compact
-        raise ArgumentError, "no external text source found for '#{topic}'" if all_sources.empty?
+        raise ArgumentError, "no external text source found for '#{@topic}'" if all_sources.empty?
 
         # take the one with the longest text
         sources_and_word_counts = all_sources.map do |source|
@@ -42,19 +43,17 @@ module ExternalTextSource
         best_source = sources_and_word_counts.key(sources_and_word_counts.values.max)
 
         # attempt to store the text source
-        ExternalPersistentStorage.save_text_source(
+        ExternalPersistentStorage.save_source_text(
           best_source.title, 
-          best_source.text, 
+          best_source.source_text, 
           best_source.word_count
         )
       end
 
       # set the accessor attributes
-      @title      = best_source.title
-      @text       = best_source.text
-      @word_count = best_source.word_count
-
-      return self
+      @title       = best_source.title
+      @source_text = best_source.source_text
+      @word_count  = best_source.word_count
     end
     
     def long_enough?
@@ -71,21 +70,22 @@ module ExternalTextSource
       FEATURED_ARTICLE_TITLES
     end
 
-    attr_reader :title, :text, :word_count
+    attr_reader :title, :source_text, :word_count
 
     def initialize(topic)
       # validate the topic argument
       raise ArgumentError, "must pass a topic (a non-empty String)" unless topic.is_a?(String) && !topic.empty?
-      
+      @topic = topic
+
       # attempt to retrieve the Wikipedia article
-      article = Wikipedia.find(topic) 
+      article = Wikipedia.find(@topic) 
       # try with downcase as a last resort
-      article = Wikipedia.find(topic.downcase) if article.title.nil? || article.text.nil?
+      article = Wikipedia.find(@topic.downcase) if article.title.nil? || article.text.nil?
       # raise an ArgumentError if the result doesn't include a title and text
-      raise ArgumentError, "no Wikipedia article found for '#{topic}'" if article.title.nil? || article.text.nil?
-      @title      = article.title
-      @text       = article.text
-      @word_count = @text.split(' ').count
+      raise ArgumentError, "no Wikipedia article found for '#{@topic}'" if article.title.nil? || article.text.nil?
+      @title       = article.title
+      @source_text = article.text
+      @word_count  = @source_text.split(' ').count
 
       # clean up the article text
       clean_up_text
@@ -99,10 +99,10 @@ module ExternalTextSource
       # The Wikipedia API sometimes returns two sentences without a space
       # between them (ie when paragraphs end and a new one starts). 
       # This regex will fix such errors:
-      @text.gsub!(/([A-Za-z][.])([A-Za-z])/, '\1 \2')
+      @source_text.gsub!(/([A-Za-z][.])([A-Za-z])/, '\1 \2')
 
       # Remove any paragraph titles (ie '=== History ===')
-      @text.gsub!(/={2,}(.*?)={2,}\n/, '')
+      @source_text.gsub!(/={2,}(.*?)={2,}\n/, '')
     end
 
   end
