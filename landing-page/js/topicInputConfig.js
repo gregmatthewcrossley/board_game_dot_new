@@ -16,9 +16,18 @@ topicField.addEventListener('input', function updateValue(e) {
   }
 });
 
+// clear the input when the user refocuses on it
 topicField.addEventListener('focus', function() {
   topicField.value = '';
   topicField.dataset.state = 'blank';
+});
+
+// click the make button when the user hits enter
+topicField.addEventListener('keyup', function(event) {
+  if (event.keyCode === 13) { // the enter key
+    topicField.blur(); 
+    makeButton.click();
+  }
 });
 
 

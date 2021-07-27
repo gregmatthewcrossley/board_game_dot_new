@@ -27,7 +27,7 @@ module ExternalTextSource
 
       # check persistant storage, use this if it exists
       if saved_text_source = ExternalPersistentStorage.retrieve_text_source(topic)
-        best_source = save_text_source
+        best_source = saved_text_source
       else
         # try to initialize each subclass
         all_sources = Any.all_source_classes.map do |klass|
