@@ -111,6 +111,50 @@ FunctionsFramework.http("topic_analysis") do |request|
   end
 end
 
+# Generate a preview of a game component
+# Local testing:
+#   export GOOGLE_APPLICATION_CREDENTIALS="/Users/gmc/Code/board_game_dot_new/google_application_credentials.json"
+#   bundle exec functions-framework-ruby --port 8006 --target preview_component
+#   http://localhost:8006/
+FunctionsFramework.http("preview_component") do |request|
+  begin # for error reporting
+    # sanitize the topic string provided by the user
+    topic = CGI.escape_html(request.params["topic"])
+    raise ArgumentError, "topic must be a non-empty string" unless topic.is_a?(String) && topic.length > 0
+    # sanitize the component string provided by the user
+    component_names_and_classes = {
+      "game-box"              => GameBox,
+      "game-money"            => GameMoney,
+      "game-instructions"     => GameInstructions,
+      "assembly-instructions" => AssemblyInstructions,
+      "game-board"            => GameBoard,
+      "question-cards"        => QuestionCards,
+      "chance-cards"          => ChanceCards,
+      "game-piece-1"          => GamePieces,
+      "game-piece-2"          => GamePieces,
+      "game-piece-3"          => GamePieces,
+      "game-piece-4"          => GamePieces,
+      "game-piece-5"          => GamePieces,
+      "game-piece-6"          => GamePieces,
+      "game-piece-7"          => GamePieces,
+      "game-piece-8"          => GamePieces
+    }
+    component = CGI.escape_html(request.params["component"])
+    raise ArgumentError, "component must be a non-empty string" unless component.is_a?(String) && component.length > 0
+    raise ArgumentError, "component must be one of #{component_names_and_classes.keys.join(', ')}" unless component_names_and_classes.keys.include?(component)
+    # generate / retrieve a preview of the component
+    component_preview_image = component_names_and_classes[component].new(topic).preview_image rescue nil
+    if component_preview_image
+      ::Rack::Response.new component_preview_image, 200
+    else
+      ::Rack::Response.new nil, 404
+    end
+  rescue StandardError => e
+    Google::Cloud::ErrorReporting.report e
+  end
+end
+
+
 
 
 

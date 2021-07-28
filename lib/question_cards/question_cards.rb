@@ -13,24 +13,34 @@ class QuestionCards
 
   attr_reader :all
 
-  def initialize(analyzed_text, number_of_questions = DEFAULT_NUMBER_OF_QUESTIONS, number_of_choices = DEFAULT_NUMBER_OF_CHOICES)
-    raise ArgumentError, "number_of_questions must be a non-zero Integer" unless number_of_questions.is_a?(Integer) && number_of_questions > 0
-    @number_of_questions = number_of_questions
-    raise ArgumentError, "number_of_choices must be an Integer between 2 and 5" unless number_of_choices.is_a?(Integer) && (2..5).include?(number_of_choices)
-    @number_of_choices = number_of_choices
-    raise ArgumentError, 'must pass an ExternalTextAnalyzer::AnalysisResult when initializing' unless analyzed_text.is_a?(ExternalTextAnalyzer::AnalysisResult)
-    entity_count = analyzed_text.entities.count
-    unless entity_count >= MINIMUM_ENTITIES_FOR_A_SET
-      raise ArgumentError, "text must have at least " + MINIMUM_ENTITIES_FOR_A_SET.to_s + " entities to generate a set of #{@number_of_questions} question cards (currently only " + entity_count.to_s + " entities)"
-    end
-    sentence_count = analyzed_text.sentences.count
-    unless sentence_count >= MINIMUM_SENTENCES_FOR_A_SET
-      raise ArgumentError, "text must have at least " + MINIMUM_SENTENCES_FOR_A_SET.to_s + " sentences to generate a set of #{@number_of_questions} question cards (currently only " + sentence_count.to_s + " sentences)"
-    end
-    @analyzed_text = analyzed_text
+  # def initialize(analyzed_text, number_of_questions = DEFAULT_NUMBER_OF_QUESTIONS, number_of_choices = DEFAULT_NUMBER_OF_CHOICES)
+  #   raise ArgumentError, "number_of_questions must be a non-zero Integer" unless number_of_questions.is_a?(Integer) && number_of_questions > 0
+  #   @number_of_questions = number_of_questions
+  #   raise ArgumentError, "number_of_choices must be an Integer between 2 and 5" unless number_of_choices.is_a?(Integer) && (2..5).include?(number_of_choices)
+  #   @number_of_choices = number_of_choices
+  #   raise ArgumentError, 'must pass an ExternalTextAnalyzer::AnalysisResult when initializing' unless analyzed_text.is_a?(ExternalTextAnalyzer::AnalysisResult)
+  #   entity_count = analyzed_text.entities.count
+  #   unless entity_count >= MINIMUM_ENTITIES_FOR_A_SET
+  #     raise ArgumentError, "text must have at least " + MINIMUM_ENTITIES_FOR_A_SET.to_s + " entities to generate a set of #{@number_of_questions} question cards (currently only " + entity_count.to_s + " entities)"
+  #   end
+  #   sentence_count = analyzed_text.sentences.count
+  #   unless sentence_count >= MINIMUM_SENTENCES_FOR_A_SET
+  #     raise ArgumentError, "text must have at least " + MINIMUM_SENTENCES_FOR_A_SET.to_s + " sentences to generate a set of #{@number_of_questions} question cards (currently only " + sentence_count.to_s + " sentences)"
+  #   end
+  #   @analyzed_text = analyzed_text
 
-    # initialize an empty 'all' array (populated by the 'generate' method below)
-    @all = []
+  #   # initialize an empty 'all' array (populated by the 'generate' method below)
+  #   @all = []
+  # end
+
+  def initialize(topic)
+    # validate the topic argument
+    raise ArgumentError, "must pass a topic (a non-empty String)" unless topic.is_a?(String) && !topic.empty?
+    @topic = topic
+  end
+
+  def preview_image
+    "foo bar" #TO-DO: make this an image
   end
 
   def generate

@@ -5,11 +5,30 @@
 div#preview-area {
   display: block;
   height: 7rem;
-/*  font-size: 0; 
-*/}
+}
+
+img.preview-image {
+
+}
+
+img.preview-image.loading {
+  background-color: blue;
+}
+
+img.preview-image.succeeded {
+  background-color: green;
+}
+
+img.preview-image.failed {
+  background-color: red;
+}
 
 div#preview-area > img.preview-image {
-  width: 3rem;
-  height: 3rem;
-  background-color: #00000010;
+  width: 11.11vw; /* 7 spaces, with a space to the left and right, equals 9 */
+  height: 11.11vw;
+}
+
+div#preview-area > div#game-pieces > img.preview-image {
+  width: 10vw; /* 8 spaces, with a space to the left and right, equals 10 */
+  height: 10vw;
 }

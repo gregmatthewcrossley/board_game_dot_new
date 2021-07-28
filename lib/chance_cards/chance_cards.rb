@@ -17,14 +17,24 @@ class ChanceCards
 
   attr_reader :all
 
-  def initialize(analyzed_text, number_of_chances = DEFAULT_NUMBER_OF_CHANCES)
-    raise ArgumentError, "number_of_chances must be a non-zero Integer" unless number_of_chances.is_a?(Integer) && number_of_chances > 0
-    @number_of_chances = number_of_chances
-    raise ArgumentError, 'must pass an ExternalTextAnalyzer::AnalysisResult when initializing' unless analyzed_text.is_a?(ExternalTextAnalyzer::AnalysisResult)
-    @analyzed_text = analyzed_text
+  # def initialize(analyzed_text, number_of_chances = DEFAULT_NUMBER_OF_CHANCES)
+  #   raise ArgumentError, "number_of_chances must be a non-zero Integer" unless number_of_chances.is_a?(Integer) && number_of_chances > 0
+  #   @number_of_chances = number_of_chances
+  #   raise ArgumentError, 'must pass an ExternalTextAnalyzer::AnalysisResult when initializing' unless analyzed_text.is_a?(ExternalTextAnalyzer::AnalysisResult)
+  #   @analyzed_text = analyzed_text
     
-    # initialize an empty 'all' array (populated by the 'generate' method below)
-    @all = []
+  #   # initialize an empty 'all' array (populated by the 'generate' method below)
+  #   @all = []
+  # end
+
+  def initialize(topic)
+    # validate the topic argument
+    raise ArgumentError, "must pass a topic (a non-empty String)" unless topic.is_a?(String) && !topic.empty?
+    @topic = topic
+  end
+
+  def preview_image
+    "foo bar" #TO-DO: make this an image
   end
 
   def generate
