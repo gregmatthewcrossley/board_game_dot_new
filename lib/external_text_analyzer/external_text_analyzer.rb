@@ -17,10 +17,9 @@ module ExternalTextAnalyzer
       # validate the topic argument
       raise ArgumentError, "must pass a topic (a non-empty String)" unless topic.is_a?(String) && !topic.empty?
       @topic = topic
-      binding.pry
+
       # check persistant storage, use this if it exists
-      saved_analysis_result = ExternalPersistentStorage.retrieve_analysis_result(@topic) # a Struct that responds to :sentences and :entities
-      if saved_analysis_result
+      if saved_analysis_result = ExternalPersistentStorage.retrieve_analysis_result(@topic) # an AnalysisResult
         best_source = Struct.new(:analysis_result).new(
             saved_analysis_result
           )
@@ -44,8 +43,7 @@ module ExternalTextAnalyzer
         # attempt to store the AnalysisResult
         ExternalPersistentStorage.save_analysis_result(
           @topic,
-          best_source.analysis_result.sentences.map(&:to_h),
-          best_source.analysis_result.entities.map(&:to_h),
+          best_source.analysis_result
         )
       end
 

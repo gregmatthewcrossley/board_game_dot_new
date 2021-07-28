@@ -88,26 +88,23 @@ module GoogleCloudStorage
     return nil unless file
     # parse the JSON file into a hash
     data_hash = JSON.parse(file.download.string)
-    # return a struct with the title, sentences and entities
-    Struct.new(:title, :sentences, :entities).new(
-        data_hash['title'],
-        data_hash['source_text'],
-        data_hash['word_count']
+    # return AnalysisResult
+    ExternalTextAnalyzer::AnalysisResult.new(
+        data_hash["analysis_result"]["sentences"].map { |s| ExternalTextAnalyzer::Sentence.new(s["string"], s["sentiment"].to_f)},
+        data_hash["analysis_result"]["entities"].map { |s| ExternalTextAnalyzer::Entity.new(s["string"], s["salience"].to_f, s["type"].to_sym, (s["is_proper"] == "true"))}
       )
   end
 
-  def save_analysis_result(title, sentences, entities)
+  def save_analysis_result(title, analysis_result)
     raise ArgumentError, 'must pass a title (String)' unless title.is_a?(String)
-    raise ArgumentError, 'must pass sentences (an array of Hashes)' unless sentences.is_a?(Array) && sentences.first.is_a?(Hash)
-    raise ArgumentError, 'must pass entities (an array of Hashes)' unless entities.is_a?(Array) && entities.first.is_a?(Hash)
+    raise ArgumentError, 'must pass an analysis_result (an AnalysisResult)' unless analysis_result.is_a?(ExternalTextAnalyzer::AnalysisResult)
     Google::Cloud::Storage.new
       .bucket(BUCKET_NAME)
       .upload_file(
         StringIO.new(
           {
             "title"     => title,
-            "sentences" => sentences,
-            "entities"  => entities
+            "analysis_result" => analysis_result.to_h
           }.to_json
         ),
         ".game_data/#{title.downcase}/analysis_result.json", 

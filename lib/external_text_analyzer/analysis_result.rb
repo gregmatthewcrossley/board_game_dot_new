@@ -1,5 +1,7 @@
 module ExternalTextAnalyzer
 
+  require 'json'
+
   # A class that holds a generic analsis result
   class AnalysisResult
 
@@ -12,6 +14,13 @@ module ExternalTextAnalyzer
       @sentences = sentences
       raise ArgumentError, 'entities must be an array containing only Entity(s)' unless entities.is_a?(Array) && entities.map { |s| s.is_a?(ExternalTextAnalyzer::Entity) }.all?
       @entities = entities
+    end
+
+    def to_h
+      {
+        "sentences" => @sentences.map(&:to_h),
+        "entities"  => @entities.map(&:to_h)
+      }
     end
 
   end
