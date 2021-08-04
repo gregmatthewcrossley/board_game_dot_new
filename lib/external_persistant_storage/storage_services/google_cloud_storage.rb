@@ -2,7 +2,15 @@ module GoogleCloudStorage
 
   require 'stringio'
 
+  # Google Cloud Storage bucket names and paths
   BUCKET_NAME = 'board-game-dot-new'
+  BUCKET_PATH_FOR = {
+    :source_text     => Proc.new { |title|                         ".game_data/#{title.downcase}/source_text.json"                             },
+    :image           => Proc.new { |title, file_extension = 'png'| ".game_data/#{title.downcase}/#{title.downcase}.#{file_extension}"          },
+    :analysis_result => Proc.new { |title|                         ".game_data/#{title.downcase}/analysis_result.json"                         },
+    :pdf             => Proc.new { |title, pdf_class|              ".game_data/#{title.downcase}/#{pdf_class.name}.pdf"                        },
+    :pdf_preview     => Proc.new { |title, pdf_class, page_number| ".game_data/#{title.downcase}/#{pdf_class.name}_preview_#{page_number}.png" }
+  }
 
   # Retrieve and save text
   def retrieve_source_text(title)
@@ -37,7 +45,7 @@ module GoogleCloudStorage
             "word_count"  => word_count
           }.to_json
         ),
-        ".game_data/#{title.downcase}/source_text.json", 
+        BUCKET_PATH_FOR[:source_text].call(title),
         acl: "projectPrivate"
       )
   end
@@ -46,34 +54,27 @@ module GoogleCloudStorage
   # Retreive and save images
   def retrieve_image(title) # returns a Tempfile
     raise ArgumentError, 'must pass a title (String)' unless title.is_a?(String)
-    # prepare the path
-    prefix = ".game_data/#{title.downcase}/#{title.downcase}."
     # retrieve all matching files
     files = Google::Cloud::Storage.new
       .bucket(BUCKET_NAME)
-      .find_files(prefix: prefix)
-    return nil if files.empty?
-    # return a Tempfile
-    Tempfile.new.tap do |tf|
-      tf.write(files.first.download.read)
-      tf.rewind
-      tf.unlink # https://ruby-doc.org/stdlib-2.4.0/libdoc/tempfile/rdoc/Tempfile.html#class-Tempfile-label-Unlink+after+creation
-    end
+      .find_files(prefix: BUCKET_PATH_FOR[:image].call(title).split('.')[0...-1].join('.')+'.') # drop the file extention but leave the final '.'
+    download_to_tempfile(files.first)
   end
 
   def save_image(title, image_tempfile)
     raise ArgumentError, 'must pass a title (String)' unless title.is_a?(String)
     raise ArgumentError, 'must pass an image_tempfile (Tempfile)' unless image_tempfile.is_a?(Tempfile)
-    # prepare the file's name and path
-    file_extension = image_tempfile.original_filename.split('.').last
-    path = ".game_data/#{title.downcase}/#{title.downcase}.#{file_extension}"
-    Google::Cloud::Storage.new
-      .bucket(BUCKET_NAME)
-      .upload_file(
-        image_tempfile,
-        path,
-        acl: "projectPrivate"
-      )
+    begin
+      Google::Cloud::Storage.new
+        .bucket(BUCKET_NAME)
+        .upload_file(
+          image_tempfile.open,
+          BUCKET_PATH_FOR[:image].call(title, image_tempfile.original_filename.split('.').last), # pass the title and file extention
+          acl: "projectPrivate"
+        )
+    ensure
+      image_tempfile.close
+    end
   end
 
 
@@ -83,7 +84,7 @@ module GoogleCloudStorage
     # retrieve the file
     file = Google::Cloud::Storage.new
       .bucket(BUCKET_NAME)
-      .find_file(".game_data/#{title.downcase}/analysis_result.json")
+      .find_file(BUCKET_PATH_FOR[:analysis_result].call(title))
     # return nil if there is no file
     return nil unless file
     # parse the JSON file into a hash
@@ -107,9 +108,82 @@ module GoogleCloudStorage
             "analysis_result" => analysis_result.to_h
           }.to_json
         ),
-        ".game_data/#{title.downcase}/analysis_result.json", 
+        BUCKET_PATH_FOR[:analysis_result].call(title), 
         acl: "projectPrivate"
       )
+  end
+
+  # Retreive and save PDFs
+  def retrieve_pdf(title, pdf_class) # returns a Tempfile
+    raise ArgumentError, 'must pass a title (String)' unless title.is_a?(String)
+    raise ArgumentError, "must pass a pdf_class (#{BoardGame.game_component_classes.map(&:name).join(', ')})" unless BoardGame.game_component_classes.include?(pdf_class)
+    # retrieve the file
+    file = Google::Cloud::Storage.new
+      .bucket(BUCKET_NAME)
+      .file(BUCKET_PATH_FOR[:pdf].call(title, pdf_class))
+    download_to_tempfile(file)
+  end
+
+  def save_pdf(title, pdf_tempfile, pdf_class)
+    raise ArgumentError, 'must pass a title (String)' unless title.is_a?(String)
+    raise ArgumentError, 'must pass a pdf_tempfile (Tempfile)' unless pdf_tempfile.is_a?(Tempfile)
+    raise ArgumentError, "must pass a pdf_class (#{BoardGame.game_component_classes.map(&:name).join(', ')})" unless BoardGame.game_component_classes.include?(pdf_class)
+    begin
+      Google::Cloud::Storage.new
+        .bucket(BUCKET_NAME)
+        .upload_file(
+          pdf_tempfile.open,
+          BUCKET_PATH_FOR[:pdf].call(title, pdf_class),
+          acl: "projectPrivate"
+        )
+    ensure
+      pdf_tempfile.close
+    end
+  end
+
+  # Retreive and save PDF preview images
+  def retrieve_pdf_preview(title, pdf_class, page_number = 1) # returns a Tempfile
+    raise ArgumentError, 'must pass a title (String)' unless title.is_a?(String)
+    raise ArgumentError, "must pass a pdf_class (#{BoardGame.game_component_classes.map(&:name).join(', ')})" unless BoardGame.game_component_classes.include?(pdf_class)
+    raise ArgumentError, "page_number must be a positive Integer" unless page_number.is_a?(Integer) && page_number > 0
+    # retrieve the file
+    file = Google::Cloud::Storage.new
+      .bucket(BUCKET_NAME)
+      .file(BUCKET_PATH_FOR[:pdf_preview].call(title, pdf_class, page_number))
+    download_to_tempfile(file)
+  end
+
+  def save_pdf_preview(title, pdf_preview_tempfile, pdf_class, page_number = 1)
+    raise ArgumentError, 'must pass a title (String)' unless title.is_a?(String)
+    raise ArgumentError, 'must pass a pdf_preview_tempfile (Tempfile)' unless pdf_preview_tempfile.is_a?(Tempfile)
+    raise ArgumentError, "page_number must be a positive Integer" unless page_number.is_a?(Integer) && page_number > 0
+    begin
+      Google::Cloud::Storage.new
+        .bucket(BUCKET_NAME)
+        .upload_file(
+          pdf_preview_tempfile.open,
+          BUCKET_PATH_FOR[:pdf_preview].call(title, pdf_class, page_number),
+          acl: "projectPrivate"
+        )
+    ensure
+      pdf_preview_tempfile.close
+    end
+  end
+
+
+
+  def download_to_tempfile(file)
+    return nil if file.nil?
+    # return a Tempfile
+    Tempfile.new.tap do |tf|
+      begin
+        tf.write(file.download.read)
+        tf.rewind
+      ensure
+        tf.close
+      end
+      #tf.unlink # https://ruby-doc.org/stdlib-2.4.0/libdoc/tempfile/rdoc/Tempfile.html#class-Tempfile-label-Unlink+after+creation
+    end
   end
 
 end

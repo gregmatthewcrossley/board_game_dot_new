@@ -11,18 +11,31 @@ class BoardGame
 
   include GamePdfGenerator
 
-  GAME_COMPONENTS = %w(
-    assembly_instructions
-    game_board
-    game_box
-    question_cards
-    chance_cards
-    game_instructions
-    game_money
-    game_pieces
-  )
+  GAME_COMPONENT_NAMES_AND_CLASSES = {
+    "game_box"              => GameBox,
+    "game_money"            => GameMoney,
+    "game_instructions"     => GameInstructions,
+    "assembly_instructions" => AssemblyInstructions,
+    "game_board"            => GameBoard,
+    "question_cards"        => QuestionCards,
+    "chance_cards"          => ChanceCards,
+    # "game_piece_1"          => GamePieces::One,
+    # "game_piece_2"          => GamePieces::Two,
+    # "game_piece_3"          => GamePieces::Three,
+    # "game_piece_4"          => GamePieces::Four,
+    # "game_piece_5"          => GamePieces::Five,
+    # "game_piece_6"          => GamePieces::Six,
+    # "game_piece_7"          => GamePieces::Seven,
+    # "game_piece_8"          => GamePieces::Eight
+  }
 
-  # GAME_COMPONENTS = ["game_money"]
+  def self.game_component_names
+    GAME_COMPONENT_NAMES_AND_CLASSES.keys
+  end
+
+  def self.game_component_classes
+    GAME_COMPONENT_NAMES_AND_CLASSES.values
+  end
 
   attr_reader :topic, :name, :description, :download_key
 
@@ -89,10 +102,10 @@ class BoardGame
 
   def generate
     # generates all game content
-    GAME_COMPONENTS.each do |component|
-      BoardGame.log_elapsed_time_for("#{component} generation for '#{@topic}'") do
-        send component
-      end
+    BoardGame.game_component_names.each do |game_component_name|
+      # BoardGame.log_elapsed_time_for("#{component} generation for '#{@topic}'") do
+        send game_component_name
+      # end
     end
     return self
   end

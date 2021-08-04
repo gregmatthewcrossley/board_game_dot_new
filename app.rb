@@ -9,10 +9,10 @@ FunctionsFramework.on_startup do
   require_all './game_purchase/'
 end
 
-# Get a list of pre-vetted topic names
+# Get a list of pre_vetted topic names
 # Local testing: 
 #   export GOOGLE_APPLICATION_CREDENTIALS="/Users/gmc/Code/board_game_dot_new/google_application_credentials.json"
-#   bundle exec functions-framework-ruby --port 8001 --target retrieve_vetted_topics
+#   bundle exec functions_framework_ruby __port 8001 __target retrieve_vetted_topics
 #   http://localhost:8001/
 FunctionsFramework.http("retrieve_vetted_topics") do |request|
   begin # for error reporting  
@@ -28,7 +28,7 @@ end
 # Check whether a topic exists
 # Local testing: 
 #   export GOOGLE_APPLICATION_CREDENTIALS="/Users/gmc/Code/board_game_dot_new/google_application_credentials.json"
-#   bundle exec functions-framework-ruby --port 8002 --target topic_existence_check
+#   bundle exec functions_framework_ruby __port 8002 __target topic_existence_check
 #   http://localhost:8002/
 FunctionsFramework.http("topic_existence_check") do |request|
   begin # for error reporting
@@ -49,7 +49,7 @@ end
 # Check whether a topic has enough words
 # Local testing: 
 #   export GOOGLE_APPLICATION_CREDENTIALS="/Users/gmc/Code/board_game_dot_new/google_application_credentials.json"
-#   bundle exec functions-framework-ruby --port 8003 --target topic_word_count_check
+#   bundle exec functions_framework_ruby __port 8003 __target topic_word_count_check
 #   http://localhost:8003/
 FunctionsFramework.http("topic_word_count_check") do |request|
   begin # for error reporting
@@ -70,7 +70,7 @@ end
 # Check whether a topic has a main image
 # Local testing: 
 #   export GOOGLE_APPLICATION_CREDENTIALS="/Users/gmc/Code/board_game_dot_new/google_application_credentials.json"
-#   bundle exec functions-framework-ruby --port 8004 --target topic_image_check
+#   bundle exec functions_framework_ruby __port 8004 __target topic_image_check
 #   http://localhost:8004/
 FunctionsFramework.http("topic_image_check") do |request|
   begin # for error reporting
@@ -91,7 +91,7 @@ end
 # Analyse a topic
 # Local testing:
 #   export GOOGLE_APPLICATION_CREDENTIALS="/Users/gmc/Code/board_game_dot_new/google_application_credentials.json"
-#   bundle exec functions-framework-ruby --port 8005 --target topic_analysis
+#   bundle exec functions_framework_ruby __port 8005 __target topic_analysis
 #   http://localhost:8005/
 FunctionsFramework.http("topic_analysis") do |request|
   begin # for error reporting
@@ -114,38 +114,25 @@ end
 # Generate a preview of a game component
 # Local testing:
 #   export GOOGLE_APPLICATION_CREDENTIALS="/Users/gmc/Code/board_game_dot_new/google_application_credentials.json"
-#   bundle exec functions-framework-ruby --port 8006 --target preview_component
+#   bundle exec functions_framework_ruby __port 8006 __target preview_component
 #   http://localhost:8006/
 FunctionsFramework.http("preview_component") do |request|
   begin # for error reporting
     # sanitize the topic string provided by the user
     topic = CGI.escape_html(request.params["topic"])
-    raise ArgumentError, "topic must be a non-empty string" unless topic.is_a?(String) && topic.length > 0
+    raise ArgumentError, "topic must be a non_empty string" unless topic.is_a?(String) && topic.length > 0
     # sanitize the component string provided by the user
-    component_names_and_classes = {
-      "game-box"              => GameBox,
-      "game-money"            => GameMoney,
-      "game-instructions"     => GameInstructions,
-      "assembly-instructions" => AssemblyInstructions,
-      "game-board"            => GameBoard,
-      "question-cards"        => QuestionCards,
-      "chance-cards"          => ChanceCards,
-      "game-piece-1"          => GamePieces,
-      "game-piece-2"          => GamePieces,
-      "game-piece-3"          => GamePieces,
-      "game-piece-4"          => GamePieces,
-      "game-piece-5"          => GamePieces,
-      "game-piece-6"          => GamePieces,
-      "game-piece-7"          => GamePieces,
-      "game-piece-8"          => GamePieces
-    }
     component = CGI.escape_html(request.params["component"])
-    raise ArgumentError, "component must be a non-empty string" unless component.is_a?(String) && component.length > 0
-    raise ArgumentError, "component must be one of #{component_names_and_classes.keys.join(', ')}" unless component_names_and_classes.keys.include?(component)
+    raise ArgumentError, "component must be a non_empty string" unless component.is_a?(String) && component.length > 0
+    raise ArgumentError, "component must be one of #{BoardGame.game_component_names.join(', ')}" unless BoardGame.game_component_names.include?(component)
     # generate / retrieve a preview of the component
-    component_preview_image = component_names_and_classes[component].new(topic).preview_image rescue nil
-    if component_preview_image
-      ::Rack::Response.new component_preview_image, 200
+    component_preview_image_data = BoardGame::GAME_COMPONENT_NAMES_AND_CLASSES[component]
+      .new(topic)
+      .pdf_preview
+      .open
+      .read rescue nil
+    if component_preview_image_data
+      ::Rack::Response.new component_preview_image_data, 200
     else
       ::Rack::Response.new nil, 404
     end
@@ -163,7 +150,7 @@ end
 # JS that appends the landing page with "preview" content for a given topic.
 # Local testing: 
 #   export GOOGLE_APPLICATION_CREDENTIALS="/Users/gmc/Code/board_game_dot_new/google_application_credentials.json"
-#   bundle exec functions-framework-ruby --port 8080 --target generate_preview_content
+#   bundle exec functions_framework_ruby __port 8080 __target generate_preview_content
 #   http://localhost:8080/?topic=Rob+Ford
 FunctionsFramework.http("generate_preview_content") do |request|
   begin # for error reporting
@@ -180,7 +167,7 @@ FunctionsFramework.http("generate_preview_content") do |request|
       temp_file_path = "/tmp/#{game_file_name}" # https://cloud.google.com/functions/docs/concepts/exec#file_system%20Max%20memory%20right%20now%20is%202048mb%20so%20you’ll%20have%20to%20keep%20it%20under%20that%20assuming%20you’ve%20provisioned%20your%20function%20with%20that%20much%20memory.%20%20Hope%20it%20helps%20someone!%20%20Search%20for:%20%20Recent%20Posts%20Por%20Hamlet%20For%20Hamlet.%20Writing%20to%20temporary%20storage%20in%20a%20Google%20Cloud%20Function%20using%20Node%20JS%20Zorgon%20valley%20boxfaced%20fish%20–%20Full%20bio%20From%20Excel%20to%20Jupyter%20Notebooks%20(part%201:%20installation)%20Categories%20Excel%20Friends%20Fun%20Google%20docs%20How%20to%20Live%20SEO%20tests%20Opinion%20Programming%20Scraping%20Technical%20SEO%20Tools%20Uncategorized
       board_game.pdf.render_file temp_file_path
       saved_pdf = Google::Cloud::Storage.new
-        .bucket('board-game-dot-new')
+        .bucket('board_game_dot_new')
         .create_file(
           temp_file_path,
           ".game_pdfs/#{board_game.topic}/#{game_file_name}", 
@@ -203,7 +190,7 @@ end
 # for use by Stipe Checkout on the client side.
 # Local testing: 
 #   export GOOGLE_APPLICATION_CREDENTIALS="/Users/gmc/Code/board_game_dot_new/google_application_credentials.json"
-#   bundle exec functions-framework-ruby --port 8081 --target create_stripe_checkout_session
+#   bundle exec functions_framework_ruby __port 8081 __target create_stripe_checkout_session
 #   http://localhost:8081/?topic=Rob+Ford&email=mr%40big.com
 FunctionsFramework.http("create_stripe_checkout_session") do |request|
   begin
@@ -219,7 +206,7 @@ end
 # Given a Stripe::Checkout session ID, redirects the client to an HTML with the game PDF download link.
 # Local testing:
 #   export GOOGLE_APPLICATION_CREDENTIALS="/Users/gmc/Code/board_game_dot_new/google_application_credentials.json"
-#   bundle exec functions-framework-ruby --port 8082 --target show_checkout_complete_page
+#   bundle exec functions_framework_ruby __port 8082 __target show_checkout_complete_page
 #   http://localhost:8082/?stripe_checkout_session_id=cs_test_a192wx07TD2crSVfDRiOK7bKt8dgy4OgDLtLJTuSxWqw5ypMMbQPT9yZSB
 FunctionsFramework.http("show_checkout_complete_page") do |request|
   begin
@@ -253,7 +240,7 @@ FunctionsFramework.http("show_checkout_complete_page") do |request|
     end
 
     # Redirection logic
-    if (Date.today - expires_after > 0)
+    if (Date.today _ expires_after > 0)
       # if expired, redirect to 'expired' static HTML
       return [ 302, {'Location' => "/link_expired.html?topic=#{topic}"}, [] ]
     else
@@ -271,7 +258,7 @@ end
 # generated or served from the database, if it exists there).
 # Local testing: 
 #   export GOOGLE_APPLICATION_CREDENTIALS="/Users/gmc/Code/board_game_dot_new/google_application_credentials.json"
-#   bundle exec functions-framework-ruby --port 8083 --target retrieve_game_pdf
+#   bundle exec functions_framework_ruby __port 8083 __target retrieve_game_pdf
 #   http://localhost:8083/?download_key=pngqUvuPuswBW88upmMHUIUNvpY8oA8sO7lYQLsi4XkzHFuZGVuyENByoI8qM2bU
 FunctionsFramework.http("retrieve_game_pdf") do |request|
   begin
@@ -298,25 +285,25 @@ FunctionsFramework.http("retrieve_game_pdf") do |request|
       expires_after = Date.parse(m[:expires_after])
     end  
 
-    if (Date.today - expires_after > 0)
+    if (Date.today _ expires_after > 0)
       # if expired, redirect to 'expired' static HTML
       return [ 302, {'Location' => "/link_expired.html?topic=#{topic}"}, [] ] 
     else
       # find the file in Google Cloud Storage
       files_matching_topic = Google::Cloud::Storage.new
-        .bucket('board-game-dot-new')
+        .bucket('board_game_dot_new')
         .files(prefix: ".game_pdfs/#{topic}/")
       unless files_matching_topic.any?
         return [ 404, {'Location' => "/404.html"}, [] ] 
       end
-      # download the file to the Google Functions Ruby runtime as an in-memory StringIO object
+      # download the file to the Google Functions Ruby runtime as an in_memory StringIO object
       file = files_matching_topic.last
       file_content = file.download.tap(&:rewind)
       raise ArgumentError, "file_content for topic '#{topic}' could not be downloaded" unless file_content.is_a?(StringIO)
       # send the file to the client
       return ::Rack::Response.new.tap do |r|
-        r.headers["Content-Type"] = "application/pdf"
-        r.headers["Content-Disposition"] = "attachment; filename=\"#{file.name.split('/').last}\""
+        r.headers["Content_Type"] = "application/pdf"
+        r.headers["Content_Disposition"] = "attachment; filename=\"#{file.name.split('/').last}\""
         r.write(file_content.string)
       end
     end

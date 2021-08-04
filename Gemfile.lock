@@ -126,6 +126,7 @@ GEM
     jwt (2.2.3)
     memoist (0.16.2)
     method_source (1.0.0)
+    mini_magick (4.11.0)
     mini_mime (1.1.0)
     minitest (5.14.4)
     multi_json (1.15.0)
@@ -186,6 +187,7 @@ DEPENDENCIES
   google-cloud-language
   google-cloud-storage
   i18n
+  mini_magick
   minitest
   prawn
   pry

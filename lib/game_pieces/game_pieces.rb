@@ -3,7 +3,7 @@ class GamePieces
   require_rel '/pdf/game_pieces_pdf_generator.rb'
   include GamePiecesPdfGenerator
 
-  NUMBER_OF_PIECES = 8
+  NUMBER_OF_PIECES = 8 # TO-DO: change this, remove it, change the class to namespace, add exactly 8 classes
 
   USEABLE_ENTITY_TYPE_WHITELIST = %w(
       PERSON

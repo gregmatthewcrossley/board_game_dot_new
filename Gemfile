@@ -24,8 +24,9 @@ gem "functions_framework", "~> 0.9"
 gem "google-cloud-storage", require: "google/cloud/storage"
 gem "stackdriver", require: "google/cloud/error_reporting"
 
-# for image downloading
+# for image downloading and processing
 gem "down", "~> 5.0"
+gem "mini_magick"
 
 # for payment processing
 gem 'stripe'

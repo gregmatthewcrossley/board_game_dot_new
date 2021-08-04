@@ -1,4 +1,4 @@
-// Game-preview building functions
+// Game_preview building functions
 function buildGame() {
   topicExistanceCheck();
 }
@@ -24,7 +24,7 @@ function topicExistanceCheck() {
 }
 
 function topicWordCoundCheck() {
-  statusMessage.textContent = 'word-counting ...';
+  statusMessage.textContent = 'counting words ...';
   // send the topic to a google function to verify there is enough written content to analyse
   var topic = topicField.value;
   request_uri = '/functions/topic_word_count_check?topic='+encodeURIComponent(topic);
@@ -84,27 +84,39 @@ function topicAnalysis() {
     });
 }
 
+// valid game component names (note that these match the component names
+// defined in the BoardGame class - see board_game.rb)
 const valid_components = [
-    'game-box',
-    'game-money',
-    'game-instructions',
-    'assembly-instructions',
-    'game-board',
-    'question-cards',
-    'chance-cards',
-    'game-piece-1',
-    'game-piece-2',
-    'game-piece-3',
-    'game-piece-4',
-    'game-piece-5',
-    'game-piece-6',
-    'game-piece-7',
-    'game-piece-8'
+    'game_box',
+    'game_money',
+    'game_instructions',
+    'assembly_instructions',
+    'game_board',
+    'question_cards',
+    'chance_cards',
+    'game_piece_1',
+    'game_piece_2',
+    'game_piece_3',
+    'game_piece_4',
+    'game_piece_5',
+    'game_piece_6',
+    'game_piece_7',
+    'game_piece_8'
   ];
+
+// const valid_components = [
+//     'game_box',
+//     'game_money',
+//   ];
 
 function gameComponentCreation(){
   statusMessage.textContent = 'making game components ...';
   valid_components.forEach(previewGameComponent);
+  // if (document.getElementsByClassName("example")) {
+  //   statusMessage.textContent = "uh_oh, there was a problem creating one of the game components!";
+  // } else {
+  //   statusMessage.textContent = 'All done!';
+  // }
 }
 
 function previewGameComponent(component){
@@ -116,17 +128,21 @@ function previewGameComponent(component){
   request_uri = '/functions/preview_component?topic='+encodeURIComponent(topic)+'&component='+encodeURIComponent(component);
   document.getElementById(component).classList.add("loading"); 
   fetch(request_uri)
-    .then(function (response) {
+    .then((response)=>{
       if (response.ok) {
-        document.getElementById(component).classList.add("succeeded"); 
+        document.getElementById(component).classList.add("succeeded");
+        return response.blob();
       } else {
         document.getElementById(component).classList.add("failed"); 
         throw new Error("the request to generate a preview of '"+component+"' didn't receive a 200 response");
       }
     })
+    .then((blob)=>{
+      // update the preview box with the received preview image
+      document.getElementById(component).src = URL.createObjectURL(blob);
+    })
     .catch(function (err) {
       setButtonToFailed();
-      statusMessage.textContent = "uh-oh, there was a problem creating one of the game components!";
       console.log(err);
     });
 }
