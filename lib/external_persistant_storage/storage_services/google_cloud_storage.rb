@@ -9,7 +9,7 @@ module GoogleCloudStorage
     :image           => Proc.new { |title, file_extension = 'png'| ".game_data/#{title.downcase}/#{title.downcase}.#{file_extension}"          },
     :analysis_result => Proc.new { |title|                         ".game_data/#{title.downcase}/analysis_result.json"                         },
     :pdf             => Proc.new { |title, pdf_class|              ".game_data/#{title.downcase}/#{pdf_class.name}.pdf"                        },
-    :pdf_preview     => Proc.new { |title, pdf_class, page_number| ".game_data/#{title.downcase}/#{pdf_class.name}_preview_#{page_number}.png" }
+    :pdf_preview     => Proc.new { |title, pdf_class, page|        ".game_data/#{title.downcase}/#{pdf_class.name}_preview_page_#{page}.png" }
   }
 
   # Retrieve and save text
@@ -142,27 +142,27 @@ module GoogleCloudStorage
   end
 
   # Retreive and save PDF preview images
-  def retrieve_pdf_preview(title, pdf_class, page_number = 1) # returns a Tempfile
+  def retrieve_pdf_preview(title, pdf_class, page = 1) # returns a Tempfile
     raise ArgumentError, 'must pass a title (String)' unless title.is_a?(String)
     raise ArgumentError, "must pass a pdf_class (#{BoardGame.game_component_classes.map(&:name).join(', ')})" unless BoardGame.game_component_classes.include?(pdf_class)
-    raise ArgumentError, "page_number must be a positive Integer" unless page_number.is_a?(Integer) && page_number > 0
+    raise ArgumentError, "page must be a positive Integer" unless page.is_a?(Integer) && page > 0
     # retrieve the file
     file = Google::Cloud::Storage.new
       .bucket(BUCKET_NAME)
-      .file(BUCKET_PATH_FOR[:pdf_preview].call(title, pdf_class, page_number))
+      .file(BUCKET_PATH_FOR[:pdf_preview].call(title, pdf_class, page))
     download_to_tempfile(file)
   end
 
-  def save_pdf_preview(title, pdf_preview_tempfile, pdf_class, page_number = 1)
+  def save_pdf_preview(title, pdf_preview_tempfile, pdf_class, page = 1)
     raise ArgumentError, 'must pass a title (String)' unless title.is_a?(String)
     raise ArgumentError, 'must pass a pdf_preview_tempfile (Tempfile)' unless pdf_preview_tempfile.is_a?(Tempfile)
-    raise ArgumentError, "page_number must be a positive Integer" unless page_number.is_a?(Integer) && page_number > 0
+    raise ArgumentError, "page must be a positive Integer" unless page.is_a?(Integer) && page > 0
     begin
       Google::Cloud::Storage.new
         .bucket(BUCKET_NAME)
         .upload_file(
           pdf_preview_tempfile.open,
-          BUCKET_PATH_FOR[:pdf_preview].call(title, pdf_class, page_number),
+          BUCKET_PATH_FOR[:pdf_preview].call(title, pdf_class, page),
           acl: "projectPrivate"
         )
     ensure

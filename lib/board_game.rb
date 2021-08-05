@@ -19,14 +19,7 @@ class BoardGame
     "game_board"            => GameBoard,
     "question_cards"        => QuestionCards,
     "chance_cards"          => ChanceCards,
-    # "game_piece_1"          => GamePieces::One,
-    # "game_piece_2"          => GamePieces::Two,
-    # "game_piece_3"          => GamePieces::Three,
-    # "game_piece_4"          => GamePieces::Four,
-    # "game_piece_5"          => GamePieces::Five,
-    # "game_piece_6"          => GamePieces::Six,
-    # "game_piece_7"          => GamePieces::Seven,
-    # "game_piece_8"          => GamePieces::Eight
+    "game_pieces"           => GamePieces
   }
 
   def self.game_component_names

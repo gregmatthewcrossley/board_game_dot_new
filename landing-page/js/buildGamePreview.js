@@ -94,20 +94,8 @@ const valid_components = [
     'game_board',
     'question_cards',
     'chance_cards',
-    'game_piece_1',
-    'game_piece_2',
-    'game_piece_3',
-    'game_piece_4',
-    'game_piece_5',
-    'game_piece_6',
-    'game_piece_7',
-    'game_piece_8'
+    'game_pieces'
   ];
-
-// const valid_components = [
-//     'game_box',
-//     'game_money',
-//   ];
 
 function gameComponentCreation(){
   statusMessage.textContent = 'making game components ...';
@@ -119,20 +107,30 @@ function gameComponentCreation(){
   // }
 }
 
-function previewGameComponent(component){
+function previewGameComponent(component, page = 1){
   var topic = topicField.value;
   if (typeof(component) !== 'string' || !valid_components.includes(component)) {
     throw 'component must be type String and one of '+valid_components.join(', ');
   }
   // send the topic and component to a google function to generate a preview
-  request_uri = '/functions/preview_component?topic='+encodeURIComponent(topic)+'&component='+encodeURIComponent(component);
+  request_uri = '/functions/preview_component?topic='+encodeURIComponent(topic)+
+    '&component='+encodeURIComponent(component)+
+    '&page='+page;
   document.getElementById(component).classList.add("loading"); 
   fetch(request_uri)
     .then((response)=>{
+      debugger;
       if (response.ok) {
+        // update the preview img element's class to 'succeeded'
         document.getElementById(component).classList.add("succeeded");
+        // if there are more pages, recursivly call this function (with this page number plus one)
+        if (response.status == 206) { // https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/206
+          previewGameComponent(component, page + 1);
+        }
         return response.blob();
       } else {
+        // update the preview img element's class to 'failed'
+        // TO-DO: update this to create elements within a specific container (instead of expecting the elements to already exist)
         document.getElementById(component).classList.add("failed"); 
         throw new Error("the request to generate a preview of '"+component+"' didn't receive a 200 response");
       }

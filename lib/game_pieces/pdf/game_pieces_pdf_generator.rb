@@ -10,7 +10,6 @@ module GamePiecesPdfGenerator
   def build_pdf(prawn_document)
     super.tap do |p|
       p.text "Placeholder #{self.class.name} PDF for #{@topic}"
-      
     end
   end
 
