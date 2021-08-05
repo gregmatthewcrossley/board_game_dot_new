@@ -1,6 +1,7 @@
 module ExternalTextSource
 
   MINIMUM_WORDS_FOR_TEXT_SOURCE = 1000
+  EXTERNAL_STORAGE_FILENAME = 'text_source.txt'
 
   class Any
 
@@ -27,7 +28,7 @@ module ExternalTextSource
       @topic = topic
 
       # check persistant storage, use this if it exists
-      if saved_text_source = ExternalPersistentStorage.retrieve_source_text(@topic)
+      if saved_text_source = ExternalPersistentStorage.retrieve_string(@topic, EXTERNAL_STORAGE_FILENAME)
         best_source = saved_text_source # a Struct that responds to :title, :source_text and :word_count
       else
         # try to initialize each subclass
@@ -43,10 +44,10 @@ module ExternalTextSource
         best_source = sources_and_word_counts.key(sources_and_word_counts.values.max)
 
         # attempt to store the text source
-        ExternalPersistentStorage.save_source_text(
-          best_source.title, 
-          best_source.source_text, 
-          best_source.word_count
+        ExternalPersistentStorage.save_string(
+          @topic, 
+          EXTERNAL_STORAGE_FILENAME,
+          best_source.source_text
         )
       end
 

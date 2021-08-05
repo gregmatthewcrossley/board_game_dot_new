@@ -3,11 +3,7 @@ class AssemblyInstructions
   require_rel './pdf/assembly_instructions_pdf_generator.rb'
   include AssemblyInstructionsPdfGenerator
 
-  # def initialize(topic)
-  #   raise ArgumentError, 'must pass a topic (string) when initializing' unless topic.is_a?(String) && !topic.empty?
-  #   # save the topic
-  #   @topic = topic.split().map(&:capitalize).join(' ')
-  # end
+  attr_reader :topic
 
   def initialize(topic)
     # validate the topic argument
@@ -15,12 +11,8 @@ class AssemblyInstructions
     @topic = topic
   end
 
-  def preview_image
-    "foo bar" #TO-DO: make this an image
-  end
-
-  def generate
-    return self
+  def quantity
+    1
   end
 
 end

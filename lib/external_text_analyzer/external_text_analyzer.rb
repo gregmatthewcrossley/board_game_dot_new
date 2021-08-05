@@ -1,5 +1,7 @@
 module ExternalTextAnalyzer
 
+  EXTERNAL_STORAGE_FILENAME = 'analysis_result.json'
+
   class Any
 
     # This class is a parent class that loads multiple specific sources
@@ -13,20 +15,20 @@ module ExternalTextAnalyzer
 
     attr_reader :analysis_result
 
-    def initialize(topic, source_text = nil)
+    def initialize(topic)
       # validate the topic argument
       raise ArgumentError, "must pass a topic (a non-empty String)" unless topic.is_a?(String) && !topic.empty?
       @topic = topic
 
       # check persistant storage, use this if it exists
-      if saved_analysis_result = ExternalPersistentStorage.retrieve_analysis_result(@topic) # an AnalysisResult
+      if saved_analysis_result = ExternalPersistentStorage.retrieve_hash(@topic, EXTERNAL_STORAGE_FILENAME) # an AnalysisResult
         best_source = Struct.new(:analysis_result).new(
             saved_analysis_result
           )
       else
         # validate the source_text
-        raise ArgumentError, 'must pass source_text (String) when initializing a topic for the first time' unless source_text.is_a?(String)
-        @source_text = source_text
+        @source_text = ExternalTextSource::Any.new(@topic).source_text rescue nil
+        raise ArgumentError, 'could not retrieve a source_text (String)' unless @source_text.is_a?(String)
 
         # try to initialize each subclass
         all_sources = Any.all_source_classes.map do |klass|
@@ -39,11 +41,11 @@ module ExternalTextAnalyzer
           s.analysis_result.is_a?(AnalysisResult)
         end.first
         raise ArgumentError, "none of the external analysis sources returned a AnalysisResult for '#{@topic}'" if best_source.nil?
-
         # attempt to store the AnalysisResult
-        ExternalPersistentStorage.save_analysis_result(
+        ExternalPersistentStorage.save_hash(
           @topic,
-          best_source.analysis_result
+          EXTERNAL_STORAGE_FILENAME,
+          best_source.analysis_result.to_h
         )
       end
 

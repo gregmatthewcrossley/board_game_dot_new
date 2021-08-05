@@ -2,8 +2,8 @@ class QuestionCards
   require_rel '/pdf/question_cards_pdf_generator.rb'
   include QuestionCardsPdfGenerator
 
-  DEFAULT_NUMBER_OF_QUESTIONS = 100
-  DEFAULT_NUMBER_OF_CHOICES = 4
+  NUMBER_OF_QUESTIONS = 100
+  NUMBER_OF_CHOICES = 4
   MINIMUM_ENTITIES_FOR_A_SET = 50
   MINIMUM_SENTENCES_FOR_A_SET = 50
   MINIMUM_CHARACTERS_FOR_A_QUESTION = 75
@@ -11,58 +11,51 @@ class QuestionCards
   PLAUSABLE_YEAR_RANGE = 30 # range of years for plausable dates
   BLANK_STRING = '________'
 
-  attr_reader :all
+  EXTERNAL_STORAGE_FILENAME = 'question_cards.json'
 
-  # def initialize(analyzed_text, number_of_questions = DEFAULT_NUMBER_OF_QUESTIONS, number_of_choices = DEFAULT_NUMBER_OF_CHOICES)
-  #   raise ArgumentError, "number_of_questions must be a non-zero Integer" unless number_of_questions.is_a?(Integer) && number_of_questions > 0
-  #   @number_of_questions = number_of_questions
-  #   raise ArgumentError, "number_of_choices must be an Integer between 2 and 5" unless number_of_choices.is_a?(Integer) && (2..5).include?(number_of_choices)
-  #   @number_of_choices = number_of_choices
-  #   raise ArgumentError, 'must pass an ExternalTextAnalyzer::AnalysisResult when initializing' unless analyzed_text.is_a?(ExternalTextAnalyzer::AnalysisResult)
-  #   entity_count = analyzed_text.entities.count
-  #   unless entity_count >= MINIMUM_ENTITIES_FOR_A_SET
-  #     raise ArgumentError, "text must have at least " + MINIMUM_ENTITIES_FOR_A_SET.to_s + " entities to generate a set of #{@number_of_questions} question cards (currently only " + entity_count.to_s + " entities)"
-  #   end
-  #   sentence_count = analyzed_text.sentences.count
-  #   unless sentence_count >= MINIMUM_SENTENCES_FOR_A_SET
-  #     raise ArgumentError, "text must have at least " + MINIMUM_SENTENCES_FOR_A_SET.to_s + " sentences to generate a set of #{@number_of_questions} question cards (currently only " + sentence_count.to_s + " sentences)"
-  #   end
-  #   @analyzed_text = analyzed_text
-
-  #   # initialize an empty 'all' array (populated by the 'generate' method below)
-  #   @all = []
-  # end
+  attr_reader :topic, :analysis_result, :question_cards
 
   def initialize(topic)
     # validate the topic argument
     raise ArgumentError, "must pass a topic (a non-empty String)" unless topic.is_a?(String) && !topic.empty?
     @topic = topic
+    @analysis_result = ExternalTextAnalyzer::Any.new(@topic).analysis_result
+    raise ArgumentError, "no ExternalTextAnalyzer::AnalysisResult could be found for #{@topic}" unless @analysis_result.is_a?(ExternalTextAnalyzer::AnalysisResult)
+    unless @analysis_result.entities.count >= MINIMUM_ENTITIES_FOR_A_SET
+      raise ArgumentError, "text must have at least " + MINIMUM_ENTITIES_FOR_A_SET.to_s + " entities"
+    end
+    unless @analysis_result.sentences.count >= MINIMUM_SENTENCES_FOR_A_SET
+      raise ArgumentError, "text must have at least " + MINIMUM_SENTENCES_FOR_A_SET.to_s + " sentences"
+    end
+    @question_cards = retrieve_question_cards || generate_question_cards
   end
 
-  def preview_image
-    "foo bar" #TO-DO: make this an image
+  def quantity
+    NUMBER_OF_QUESTIONS
   end
 
-  def generate
-    return self unless @all.empty?
-    @all = @analyzed_text.entities.map { |entity| 
+
+  private
+
+
+  def retrieve_question_cards
+    ExternalPersistentStorage.retrieve_hash(@topic, EXTERNAL_STORAGE_FILENAME)
+  end
+
+  def generate_question_cards
+    @analysis_result.entities.map { |entity| 
       Struct.new(:question, :choices, :answer).new(
         question_with_blank_for(entity), 
         (choices_for(entity) + [entity.string]).shuffle,
         entity.string
       )
     }.reject { |card|  
-      card.question.empty? ||                       # drop any cards with blank questions
+      card.question.empty? ||                        # drop any cards with blank questions
       /#{BLANK_STRING}/.match(card.question).nil? || # drop any questions without blanks
-      card.choices.count != @number_of_choices      # drop any questions with not enough answers
+      card.choices.count != @number_of_choices       # drop any questions with not enough answers
     }.take(@number_of_questions)
     .shuffle
-    return self
   end
-
-
-  private
-
 
   def question_with_blank_for(entity)
     raise ArgumentError, "entity must be a ExternalTextAnalyzer::Entity" unless entity.is_a?(ExternalTextAnalyzer::Entity)
@@ -77,7 +70,7 @@ class QuestionCards
       " #{entity.string} ",             # mid sentence
       " #{entity.string}.",             # end of sentene
     ]
-    @analyzed_text.sentences.map(&:string).select { |sentence|
+    @analysis_result.sentences.map(&:string).select { |sentence|
       entity_string_variations.map { |variation|
         sentence.include? variation
       }.any?
@@ -160,7 +153,7 @@ class QuestionCards
 
   def all_entity_strings_except(entity)
     raise ArgumentError, "entity must be a ExternalTextAnalyzer::Entity" unless entity.is_a?(ExternalTextAnalyzer::Entity)
-    entity_name_list = @analyzed_text.entities.select { |this_entity|
+    entity_name_list = @analysis_result.entities.select { |this_entity|
       this_entity.string != entity.string && # drop the entity if it has the same string
       this_entity.type == entity.type && # drop the entity unless it is the same type
       this_entity.is_proper? == entity.is_proper? && # drop the entity unless its noun type matches (proper or regular)

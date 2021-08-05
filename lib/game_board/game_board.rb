@@ -13,80 +13,29 @@ class GameBoard
   TOO_CLOSE = 2
   TOO_FAR = (PLACE_COUNT / 10).to_i
 
-  # def initialize(analysis_result)
-  #   # validate the analysis_result
-  #   raise ArgumentError, "must pass an ExternalTextAnalyzer::AnalysisResult" unless analysis_result.is_a?(ExternalTextAnalyzer::AnalysisResult)
-  #   @analysis_result = analysis_result
-  # end
+  EXTERNAL_STORAGE_FILENAME = 'game_board.json'
+
+  attr_reader :topic, :place_map
 
   def initialize(topic)
     # validate the topic argument
     raise ArgumentError, "must pass a topic (a non-empty String)" unless topic.is_a?(String) && !topic.empty?
     @topic = topic
+    @place_map = retrieve_place_map || generate_place_map
   end
 
-  def preview_image
-    "foo bar" #TO-DO: make this an image
-  end
-
-  def generate
-    # create places array
-    @places = (1..PLACE_COUNT).map { |i| [i, :blank]}.to_h
-
-    # add chances
-    blank_place_indicies.sample(CHANCE_PLACE_COUNT).each do |i|
-      @places[i] = :chance
-    end
-
-    # add questions
-    blank_place_indicies.sample(QUESTION_PLACE_COUNT).each do |i|
-      @places[i] = :question
-    end
-
-    # add ladders
-    blank_place_indicies.sample(LADDER_PLACE_COUNT).each do |i|
-      @places[i] = {
-        :ladder_to => blank_place_indicies.select { |j| 
-          (j - i) > TOO_CLOSE &&
-          (j - i) < TOO_FAR
-        }.sample
-      }
-      # remove any nil chutes
-      if @places[i][:ladder_to].nil?
-        @places[i] = :blank
-      end
-    end
-
-    # add chutes
-    blank_place_indicies.sample(CHUTE_PLACE_COUNT).each do |i|
-      @places[i] = {
-        :chute_to => blank_place_indicies.select { |j| 
-          (i - j) > TOO_CLOSE &&
-          (i - j) < TOO_FAR
-        }.sample
-      }
-      # remove any nil chutes
-      if @places[i][:chute_to].nil?
-        @places[i] = :blank
-      end
-    end
-
-    return self
-
-  end
-
-  def map
-    @places
+  def quantity
+    1
   end
 
   def print
     table = ::Terminal::Table.new do |t|
-      square_root = Math.sqrt(@places.count).round
+      square_root = Math.sqrt(@place_map.count).round
       rows = (1..square_root).map { |i| 
         ((square_root * (i-1))+1)..(square_root * i)
       }
       rows.each do |range|
-        t.add_row @places.select { |k,v| 
+        t.add_row @place_map.select { |k,v| 
           range.include?(k)
         }.map { |k,v| 
           "#{k}\n\n#{v.to_s}"
@@ -97,17 +46,67 @@ class GameBoard
         :alignment => :center
       }
     end
-
+    # print table to console
     puts table
-
   end
 
 
   private
 
 
+  def retrieve_place_map
+    ExternalPersistentStorage.retrieve_hash(@topic, EXTERNAL_STORAGE_FILENAME)
+  end
+
+  def generate_place_map
+    # create place_map hash
+    (1..PLACE_COUNT).map { |i| [i, :blank]}.to_h.tap do |place_map|
+
+      # add chances
+      blank_place_indicies.sample(CHANCE_PLACE_COUNT).each do |i|
+        place_map[i] = :chance
+      end
+
+      # add questions
+      blank_place_indicies.sample(QUESTION_PLACE_COUNT).each do |i|
+        place_map[i] = :question
+      end
+
+      # add ladders
+      blank_place_indicies.sample(LADDER_PLACE_COUNT).each do |i|
+        place_map[i] = {
+          :ladder_to => blank_place_indicies.select { |j| 
+            (j - i) > TOO_CLOSE &&
+            (j - i) < TOO_FAR
+          }.sample
+        }
+        # remove any nil chutes
+        if place_map[i][:ladder_to].nil?
+          place_map[i] = :blank
+        end
+      end
+
+      # add chutes
+      blank_place_indicies.sample(CHUTE_PLACE_COUNT).each do |i|
+        place_map[i] = {
+          :chute_to => blank_place_indicies.select { |j| 
+            (i - j) > TOO_CLOSE &&
+            (i - j) < TOO_FAR
+          }.sample
+        }
+        # remove any nil chutes
+        if place_map[i][:chute_to].nil?
+          place_map[i] = :blank
+        end
+      end
+
+      # save to storage for next time
+      ExternalPersistentStorage.save_hash(@topic, EXTERNAL_STORAGE_FILENAME, place_map)
+    end
+  end
+
   def blank_place_indicies
-    @places.select { |i, v| v == :blank}.map { |i, v| i }
+    @place_map.select { |i, v| v == :blank}.map { |i, v| i }
   end
 
 end

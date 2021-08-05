@@ -2,7 +2,7 @@ class ChanceCards
   require_rel '/pdf/chance_cards_pdf_generator.rb'
   include ChanceCardsPdfGenerator
   
-  DEFAULT_NUMBER_OF_CHANCES = 25
+  NUMBER_OF_CHANCE_CARDS = 25
   POSITIVE_CONSEQUENCE_LIST = [
       "Move forward * spaces.",
       "Take * dollars from the pot.",
@@ -15,31 +15,36 @@ class ChanceCards
     ]
   CONSEQUENCE_RANGE = 5
 
-  attr_reader :all
+  EXTERNAL_STORAGE_FILENAME = 'chance_cards.json'
 
-  # def initialize(analyzed_text, number_of_chances = DEFAULT_NUMBER_OF_CHANCES)
-  #   raise ArgumentError, "number_of_chances must be a non-zero Integer" unless number_of_chances.is_a?(Integer) && number_of_chances > 0
-  #   @number_of_chances = number_of_chances
-  #   raise ArgumentError, 'must pass an ExternalTextAnalyzer::AnalysisResult when initializing' unless analyzed_text.is_a?(ExternalTextAnalyzer::AnalysisResult)
-  #   @analyzed_text = analyzed_text
-    
-  #   # initialize an empty 'all' array (populated by the 'generate' method below)
-  #   @all = []
-  # end
+  attr_reader :topic, :analysis_result, :chance_cards
 
   def initialize(topic)
     # validate the topic argument
     raise ArgumentError, "must pass a topic (a non-empty String)" unless topic.is_a?(String) && !topic.empty?
     @topic = topic
+    @analysis_result = ExternalTextAnalyzer::Any.new(@topic).analysis_result
+    raise ArgumentError, "no ExternalTextAnalyzer::AnalysisResult could be found for #{@topic}" unless @analysis_result.is_a?(ExternalTextAnalyzer::AnalysisResult)
+    unless @analysis_result.sentences.count >= NUMBER_OF_CHANCE_CARDS
+      raise ArgumentError, "text must have at least " + NUMBER_OF_CHANCE_CARDS.to_s + " sentences"
+    end
+    @chance_cards = retrieve_chance_cards || generate_chance_cards
   end
 
-  def preview_image
-    "foo bar" #TO-DO: make this an image
+  def quantity
+    NUMBER_OF_CHANCE_CARDS
   end
 
-  def generate
-    return self unless @all.empty?
-    @all = @analyzed_text.sentences.map { |sentence| 
+
+  private
+
+
+  def retrieve_chance_cards
+    ExternalPersistentStorage.retrieve_hash(@topic, EXTERNAL_STORAGE_FILENAME)
+  end
+
+  def generate_chance_cards
+    @analysis_result.sentences.map { |sentence| 
       Struct.new(:event, :consequence, :sentiment).new(
         sentence.string, 
         consequence_from(sentence.sentiment), 
@@ -49,8 +54,6 @@ class ChanceCards
       a.sentiment.abs <=> b.sentiment.abs
     }.take(@number_of_chances)
     .shuffle
-
-    return self
   end
 
 

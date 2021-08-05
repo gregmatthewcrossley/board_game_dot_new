@@ -1,13 +1,11 @@
 class GameMoney
 
+  NUMBER_OF_MONEYS = 100
+
   require_rel './pdf/game_money_pdf_generator.rb'
   include GameMoneyPdfGenerator
 
-  # def initialize(topic)
-  #   raise ArgumentError, 'must pass a topic (string) when initializing' unless topic.is_a?(String) && !topic.empty?
-  #   # save the topic
-  #   @topic = topic.split().map(&:capitalize).join(' ')
-  # end
+  attr_reader :topic
 
   def initialize(topic)
     # validate the topic argument
@@ -15,12 +13,8 @@ class GameMoney
     @topic = topic
   end
 
-  def preview_image
-    "foo bar" #TO-DO: make this an image
-  end
-
-  def generate
-    return self
+  def quantity
+    NUMBER_OF_MONEYS
   end
 
 end

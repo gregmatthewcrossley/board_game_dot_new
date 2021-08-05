@@ -1,5 +1,14 @@
 module Pdf # a parent class that manages the retrieval, storage and preview generation for PDFs
 
+  def external_pdf_filename
+    "Component#{self.class.name}.pdf"
+  end
+
+  def external_pdf_preview_filename(page_number)
+    raise ArgumentError, 'page_number must be a positive Integer' unless page_number.is_a?(Integer) && page_number > 0
+    "Component#{self.class.name}_preview_page#{page_number.to_s.rjust(3, "0")}.png" # ensures all generated preview files are PNGs
+  end
+
   def pdf
     @pdf ||= retrieve_pdf || generate_pdf
   end
@@ -9,71 +18,72 @@ module Pdf # a parent class that manages the retrieval, storage and preview gene
   end
 
   def retrieve_pdf
-    ExternalPersistentStorage.retrieve_pdf(@topic, self.class)
+    ExternalPersistentStorage.retrieve_file(@topic, external_pdf_filename, public_pdf: self.class == BoardGame)
   end
 
   def retrieve_pdf_preview(page = 1)
-    ExternalPersistentStorage.retrieve_pdf_preview(@topic, self.class, page)
+    ExternalPersistentStorage.retrieve_file(@topic, external_pdf_preview_filename(page))
   end
 
   def generate_pdf(prawn_document = Prawn::Document.new)
     raise ArgumentError, 'must pass a Prawn::Document' unless prawn_document.is_a?(Prawn::Document)
-    # pdf_file_name = "#{self.class.name.gsub(/(.)([A-Z])/,'\1_\2').downcase}.pdf"
-    # path_and_pdf_filename = "../tmp/#{pdf_file_name}"
-    # build_pdf(prawn_document)
-    #   .tap do |p| # add an 'open' method to open the PDF locally
-    #     _open = Proc.new do
-    #       render_file(path_and_pdf_filename)
-    #       system "open #{path_and_pdf_filename}"
-    #     end
-    #     p.define_singleton_method(:open, _open)
-    #   end
-    Tempfile.new.tap do |tf|
+    Tempfile.new.tap do |f|
       begin
-        tf.write(build_pdf(prawn_document).render)
-        tf.rewind
-        # attempt to store the image Tempfile for next time
-        ExternalPersistentStorage.save_pdf(
+        # build the PDF and render it to this tempfile
+        f.write(build_pdf(prawn_document).render)
+        # attempt to store the PDF Tempfile for next time
+        ExternalPersistentStorage.save_file(
           @topic,
-          tf,
-          self.class
+          external_pdf_filename,
+          f,
+          public_pdf: self.class == BoardGame
         )
+        # add a singleton method to this tempfile to allow it to be easily opened locally
+        add_local_open_method
       ensure
-        tf.close
+        f.close
       end
     end # return a closed tempfile
   end
 
   def generate_pdf_preview(page = 1)
-    begin
-      # create a tempfile for the preview image
-      pdf_preview_image_tempfile = Tempfile.new(["page-#{page}", ".png"], binmode: true)
-      # open the PDF using MiniMagic::Image
-      pdf_page = MiniMagick::Image
-        .new(pdf.path)
-        .pages[page]
-      # use MiniMagick::Tool::Convert to convert the pdf_page into an image
-      # and save it to the preview image tempfile created above
-      MiniMagick::Tool::Convert.new do |convert|
-        convert.background 'white'
-        convert.flatten
-        convert.density 300
-        convert.quality 95
-        convert << pdf_page.path
-        convert << pdf_preview_image_tempfile.path
+    raise ArgumentError, 'page must be a positive Integer' unless page.is_a?(Integer) && page > 1
+    # create a tempfile for the preview image
+    Tempfile.new(
+      [
+        external_pdf_preview_filename(page).split('.').first,
+        "." + external_pdf_preview_filename(page).split('.').last
+      ],
+      binmode: true
+    ) do |f|
+      begin
+        # open the given page of this PDF using MiniMagic::Image
+        pdf_page = MiniMagick::Image
+          .new(pdf.path)
+          .pages[page]
+        # use MiniMagick::Tool::Convert to convert the pdf_page into an image
+        # and save it to the preview image tempfile created above
+        MiniMagick::Tool::Convert.new do |convert|
+          convert.background 'white'
+          convert.flatten
+          convert.density 300
+          convert.quality 95
+          convert << pdf_page.path
+          convert << f.path
+        end
+        f.open # refresh the preview image tempfile TO-DO: is this :open step neccesary? why does it 'refresh' and what does that mean? is this a quirk of imagemagic?
+        # save this preview image tempfile for next time
+        ExternalPersistentStorage.save_pdf_preview(
+          @topic,
+          external_pdf_preview_filename(page),
+          f
+        )
+        # add a singleton method to this tempfile to allow it to be easily opened locally
+        add_local_open_method
+      ensure
+        f.close 
       end
-      pdf_preview_image_tempfile.open # refresh the preview image tempfile
-    ensure
-      pdf.close 
     end
-    # save this preview image tempfile for next time
-    ExternalPersistentStorage.save_pdf_preview(
-      @topic,
-      pdf_preview_image_tempfile,
-      self.class,
-      page
-    )
-    return pdf_preview_image_tempfile
   end
 
   def build_pdf(prawn_document)
@@ -82,5 +92,21 @@ module Pdf # a parent class that manages the retrieval, storage and preview gene
       # anything you want at the start of all components, add here!
     end
   end
+
+
+  # Private methods
+
+  def add_local_open_method
+    define_singleton_method(
+      :open,
+      Proc.new do
+        render_file(path_and_pdf_filename)
+        self.open
+        self.rewind
+        system "open #{self.path}"
+      end
+    )
+  end
+  # # private_class_method :add_local_open_method
 
 end

@@ -38,23 +38,14 @@
     
     <!-- Preview Area -->
     <div id="preview-area">
-      <img class="preview-image" id="game_box"/>
-      <img class="preview-image" id="game_money"/>
-      <img class="preview-image" id="game_instructions"/>
-      <img class="preview-image" id="assembly_instructions"/>
-      <img class="preview-image" id="game_board"/>
-      <img class="preview-image" id="question_cards"/>
-      <img class="preview-image" id="chance_cards"/>
-      <div id="game_pieces">
-        <img class="preview-image" id="game_piece_1"/>
-        <img class="preview-image" id="game_piece_2"/>
-        <img class="preview-image" id="game_piece_3"/>
-        <img class="preview-image" id="game_piece_4"/>
-        <img class="preview-image" id="game_piece_5"/>
-        <img class="preview-image" id="game_piece_6"/>
-        <img class="preview-image" id="game_piece_7"/>
-        <img class="preview-image" id="game_piece_8"/>
-      </div>
+      <div class="component" id="game_box"></div>
+      <div class="component" id="game_money"></div>
+      <div class="component" id="game_instructions"></div>
+      <div class="component" id="assembly_instructions"></div>
+      <div class="component" id="game_board"></div>
+      <div class="component" id="question_cards"></div>
+      <div class="component" id="chance_cards"></div>
+      <div class="component" id="game_pieces"></div>
     </div>
 
     <!-- Call to Action -->
@@ -79,12 +70,10 @@
   <!-- Topic Field -->
   <script src="https://cdn.jsdelivr.net/npm/@tarekraafat/autocomplete.js@10.1.5/dist/autoComplete.min.js"></script>
   <script src="/js/topicInputConfig.js"></script>
-  <!-- Game Preview -->
-  <script src="/js/buildGamePreview.js"></script>
   <!-- Make Button -->
   <script src="/js/makeButtonConfig.js"></script>
-  <!-- Preview Area -->
-  <script src="/js/previewAreaConfig.js"></script>
+  <!-- Game Preview -->
+  <script src="/js/buildGamePreview.js"></script>
   <!-- Stripe Checkout -->
   <script src="https://js.stripe.com/v3/"></script>
   <script src="/js/stripe_checkout.js"></script>

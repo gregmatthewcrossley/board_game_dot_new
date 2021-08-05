@@ -72,7 +72,7 @@ function topicAnalysis() {
     .then(function (response) {
       if (response.ok) {
         statusMessage.textContent = 'analysis complete!';
-        gameComponentCreation();
+        nameGeneration();
       } else {
         throw new Error("topicAnalysis() didn't receive a 200 response");
       }
@@ -80,6 +80,27 @@ function topicAnalysis() {
     .catch(function (err) {
       setButtonToFailed();
       statusMessage.textContent = "hmm, '" + topic + "' is a bit too complex!";
+      console.log(err);
+    });
+}
+
+function nameGeneration() {
+  statusMessage.textContent = 'making up a good name ...';
+  // send the topic to a google function for analysis
+  var topic = topicField.value;
+  request_uri = '/functions/name_generation?topic='+encodeURIComponent(topic);
+  fetch(request_uri)
+    .then(function (response) {
+      if (response.ok) {
+        statusMessage.textContent = 'Oooooh, thought of a good name!';
+        gameComponentCreation();
+      } else {
+        throw new Error("nameGeneration() didn't receive a 200 response");
+      }
+    })
+    .catch(function (err) {
+      setButtonToFailed();
+      statusMessage.textContent = "hmm, '" + topic + "' is too hard to make up a name for!";
       console.log(err);
     });
 }
@@ -119,7 +140,6 @@ function previewGameComponent(component, page = 1){
   document.getElementById(component).classList.add("loading"); 
   fetch(request_uri)
     .then((response)=>{
-      debugger;
       if (response.ok) {
         // update the preview img element's class to 'succeeded'
         document.getElementById(component).classList.add("succeeded");
@@ -130,14 +150,16 @@ function previewGameComponent(component, page = 1){
         return response.blob();
       } else {
         // update the preview img element's class to 'failed'
-        // TO-DO: update this to create elements within a specific container (instead of expecting the elements to already exist)
         document.getElementById(component).classList.add("failed"); 
         throw new Error("the request to generate a preview of '"+component+"' didn't receive a 200 response");
       }
     })
     .then((blob)=>{
-      // update the preview box with the received preview image
-      document.getElementById(component).src = URL.createObjectURL(blob);
+      // add an img element to this component's preview container div,
+      // and update it with the received preview image
+      document.getElementById(component)
+        .appendChild(document.createElement('img'))
+        .src = URL.createObjectURL(blob);
     })
     .catch(function (err) {
       setButtonToFailed();

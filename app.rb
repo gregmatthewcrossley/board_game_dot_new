@@ -12,7 +12,7 @@ end
 # Get a list of pre_vetted topic names
 # Local testing: 
 #   export GOOGLE_APPLICATION_CREDENTIALS="/Users/gmc/Code/board_game_dot_new/google_application_credentials.json"
-#   bundle exec functions_framework_ruby __port 8001 __target retrieve_vetted_topics
+#   bundle exec functions-framework-ruby --port 8001 --target retrieve_vetted_topics
 #   http://localhost:8001/
 FunctionsFramework.http("retrieve_vetted_topics") do |request|
   begin # for error reporting  
@@ -22,13 +22,14 @@ FunctionsFramework.http("retrieve_vetted_topics") do |request|
     }.to_json
   rescue StandardError => e
     Google::Cloud::ErrorReporting.report e
+    ::Rack::Response.new nil, 500
   end
 end
 
 # Check whether a topic exists
 # Local testing: 
 #   export GOOGLE_APPLICATION_CREDENTIALS="/Users/gmc/Code/board_game_dot_new/google_application_credentials.json"
-#   bundle exec functions_framework_ruby __port 8002 __target topic_existence_check
+#   bundle exec functions-framework-ruby --port 8002 --target topic_existence_check
 #   http://localhost:8002/
 FunctionsFramework.http("topic_existence_check") do |request|
   begin # for error reporting
@@ -43,13 +44,14 @@ FunctionsFramework.http("topic_existence_check") do |request|
     end
   rescue StandardError => e
     Google::Cloud::ErrorReporting.report e
+    ::Rack::Response.new nil, 500
   end
 end
 
 # Check whether a topic has enough words
 # Local testing: 
 #   export GOOGLE_APPLICATION_CREDENTIALS="/Users/gmc/Code/board_game_dot_new/google_application_credentials.json"
-#   bundle exec functions_framework_ruby __port 8003 __target topic_word_count_check
+#   bundle exec functions-framework-ruby --port 8003 --target topic_word_count_check
 #   http://localhost:8003/
 FunctionsFramework.http("topic_word_count_check") do |request|
   begin # for error reporting
@@ -64,20 +66,22 @@ FunctionsFramework.http("topic_word_count_check") do |request|
     end
   rescue StandardError => e
     Google::Cloud::ErrorReporting.report e
+    ::Rack::Response.new nil, 500
   end
 end
 
 # Check whether a topic has a main image
 # Local testing: 
 #   export GOOGLE_APPLICATION_CREDENTIALS="/Users/gmc/Code/board_game_dot_new/google_application_credentials.json"
-#   bundle exec functions_framework_ruby __port 8004 __target topic_image_check
+#   bundle exec functions-framework-ruby --port 8004 --target topic_image_check
 #   http://localhost:8004/
 FunctionsFramework.http("topic_image_check") do |request|
   begin # for error reporting
     # sanitize the topic string provided by the user
     topic = CGI.escape_html(request.params["topic"])
     # return 200 if an image for the topic exists, 404 otherwise
-    image_source = ExternalImageSource::Any.new(topic) rescue nil
+    # close and unlink the file if it exists (this is just a checker function, we don't need the tempfile to stick around)
+    image_source = ExternalImageSource::Any.new(topic).tempfile.tap(&:close).tap(&:unlink) rescue nil
     if image_source
       ::Rack::Response.new nil, 200
     else
@@ -85,22 +89,22 @@ FunctionsFramework.http("topic_image_check") do |request|
     end
   rescue StandardError => e
     Google::Cloud::ErrorReporting.report e
+    ::Rack::Response.new nil, 500
   end
 end
 
 # Analyse a topic
 # Local testing:
 #   export GOOGLE_APPLICATION_CREDENTIALS="/Users/gmc/Code/board_game_dot_new/google_application_credentials.json"
-#   bundle exec functions_framework_ruby __port 8005 __target topic_analysis
+#   bundle exec functions-framework-ruby --port 8005 --target topic_analysis
 #   http://localhost:8005/
 FunctionsFramework.http("topic_analysis") do |request|
   begin # for error reporting
     # sanitize the topic string provided by the user
     topic = CGI.escape_html(request.params["topic"])
-    # return 200 if the topic is long enough, 404 otherwise
-    text_source = ExternalTextSource::Any.new(topic) rescue nil # should be fast, as it should have already been retrieved and saved to disk
-    return ::Rack::Response.new nil, 404 unless text_source
-    analysis = ExternalTextAnalyzer::Any.new(topic, text_source.source_text) rescue nil
+    # return 200 if the topic was analysed, 404 otherwise
+    analysis = ExternalTextAnalyzer::Any.new(topic) rescue nil
+    binding.pry
     if analysis
       ::Rack::Response.new nil, 200
     else
@@ -108,19 +112,41 @@ FunctionsFramework.http("topic_analysis") do |request|
     end
   rescue StandardError => e
     Google::Cloud::ErrorReporting.report e
+    ::Rack::Response.new nil, 500
+  end
+end
+
+# Generate a game name and description
+# Local testing:
+#   export GOOGLE_APPLICATION_CREDENTIALS="/Users/gmc/Code/board_game_dot_new/google_application_credentials.json"
+#   bundle exec functions-framework-ruby --port 8006 --target name_generation
+#   http://localhost:8006/
+FunctionsFramework.http("name_generation") do |request|
+  begin # for error reporting
+    # sanitize the topic string provided by the user
+    topic = CGI.escape_html(request.params["topic"])
+    # return 200 if a name and description was generated, 404 otherwise
+    name_and_description = NameAndDescription.new(topic) rescue nil
+    if name_and_description
+      ::Rack::Response.new name_and_description, 200
+    else
+      ::Rack::Response.new nil, 404
+    end
+  rescue StandardError => e
+    Google::Cloud::ErrorReporting.report e
+    ::Rack::Response.new nil, 500
   end
 end
 
 # Generate a preview of a game component
 # Local testing:
 #   export GOOGLE_APPLICATION_CREDENTIALS="/Users/gmc/Code/board_game_dot_new/google_application_credentials.json"
-#   bundle exec functions_framework_ruby __port 8006 __target preview_component
-#   http://localhost:8006/
+#   bundle exec functions-framework-ruby --port 8007 --target preview_component
+#   http://localhost:8007/
 FunctionsFramework.http("preview_component") do |request|
   begin # for error reporting
     # sanitize the topic string provided by the user
     topic = CGI.escape_html(request.params["topic"])
-    raise ArgumentError, "topic must be a non_empty string" unless topic.is_a?(String) && topic.length > 0
     # sanitize the component string provided by the user
     component = CGI.escape_html(request.params["component"])
     raise ArgumentError, "component must be a non_empty string" unless component.is_a?(String) && component.length > 0
@@ -129,22 +155,22 @@ FunctionsFramework.http("preview_component") do |request|
     page = (CGI.escape_html(request.params["component"]).to_i rescue nil) || 1
     raise ArgumentError, "page must be a positive Integer" unless page.is_a?(Integer) && page > 0
     # generate / retrieve a preview of the component
-    component_preview_image_data = BoardGame::GAME_COMPONENT_NAMES_AND_CLASSES[component]
-      .new(topic)
+    component = BoardGame::GAME_COMPONENT_NAMES_AND_CLASSES[component].new(topic)
+    component_preview_image_data = component
       .pdf_preview(page)
       .open
       .read rescue nil
     if component_preview_image_data
-      ::Rack::Response.new component_preview_image_data, 200
+      # return the preview image data, along with a 20X header: 206 if there are more pages, 200 if there are no more pages
+      ::Rack::Response.new component_preview_image_data, (component.quantity > page ? 206 : 200)
     else
       ::Rack::Response.new nil, 404
     end
   rescue StandardError => e
     Google::Cloud::ErrorReporting.report e
+    ::Rack::Response.new nil, 500
   end
 end
-
-
 
 
 
@@ -153,7 +179,7 @@ end
 # # JS that appends the landing page with "preview" content for a given topic.
 # # Local testing: 
 # #   export GOOGLE_APPLICATION_CREDENTIALS="/Users/gmc/Code/board_game_dot_new/google_application_credentials.json"
-# #   bundle exec functions_framework_ruby __port 8080 __target generate_preview_content
+# #   bundle exec functions-framework-ruby --port 8080 --target generate_preview_content
 # #   http://localhost:8080/?topic=Rob+Ford
 # FunctionsFramework.http("generate_preview_content") do |request|
 #   begin # for error reporting
@@ -193,7 +219,7 @@ end
 # for use by Stipe Checkout on the client side.
 # Local testing: 
 #   export GOOGLE_APPLICATION_CREDENTIALS="/Users/gmc/Code/board_game_dot_new/google_application_credentials.json"
-#   bundle exec functions_framework_ruby __port 8081 __target create_stripe_checkout_session
+#   bundle exec functions-framework-ruby --port 8081 --target create_stripe_checkout_session
 #   http://localhost:8081/?topic=Rob+Ford&email=mr%40big.com
 FunctionsFramework.http("create_stripe_checkout_session") do |request|
   begin
@@ -203,13 +229,14 @@ FunctionsFramework.http("create_stripe_checkout_session") do |request|
     return { id: session.id }.to_json # sent back to the Stripe JS client on the customer's browser
   rescue StandardError => e
     Google::Cloud::ErrorReporting.report e
+    ::Rack::Response.new nil, 500
   end
 end
 
 # Given a Stripe::Checkout session ID, redirects the client to an HTML with the game PDF download link.
 # Local testing:
 #   export GOOGLE_APPLICATION_CREDENTIALS="/Users/gmc/Code/board_game_dot_new/google_application_credentials.json"
-#   bundle exec functions_framework_ruby __port 8082 __target show_checkout_complete_page
+#   bundle exec functions-framework-ruby --port 8082 --target show_checkout_complete_page
 #   http://localhost:8082/?stripe_checkout_session_id=cs_test_a192wx07TD2crSVfDRiOK7bKt8dgy4OgDLtLJTuSxWqw5ypMMbQPT9yZSB
 FunctionsFramework.http("show_checkout_complete_page") do |request|
   begin
@@ -252,6 +279,7 @@ FunctionsFramework.http("show_checkout_complete_page") do |request|
     end
   rescue StandardError => e
     Google::Cloud::ErrorReporting.report e
+    ::Rack::Response.new nil, 500
     return [ 404, {'Location' => "/404.html"}, [] ] 
   end
 end
@@ -261,7 +289,7 @@ end
 # generated or served from the database, if it exists there).
 # Local testing: 
 #   export GOOGLE_APPLICATION_CREDENTIALS="/Users/gmc/Code/board_game_dot_new/google_application_credentials.json"
-#   bundle exec functions_framework_ruby __port 8083 __target retrieve_game_pdf
+#   bundle exec functions-framework-ruby --port 8083 --target retrieve_game_pdf
 #   http://localhost:8083/?download_key=pngqUvuPuswBW88upmMHUIUNvpY8oA8sO7lYQLsi4XkzHFuZGVuyENByoI8qM2bU
 FunctionsFramework.http("retrieve_game_pdf") do |request|
   begin
@@ -312,6 +340,7 @@ FunctionsFramework.http("retrieve_game_pdf") do |request|
     end
   rescue StandardError => e
     Google::Cloud::ErrorReporting.report e
+    ::Rack::Response.new nil, 500
   end
 end
 

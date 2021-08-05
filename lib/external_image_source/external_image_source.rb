@@ -1,5 +1,8 @@
 module ExternalImageSource
 
+  REQUIRED_IMAGE_TYPE_EXTENTION = 'png'
+  EXTERNAL_STORAGE_FILENAME = 'main_image.png'
+
   class Any
 
     # This class is a parent class that loads multiple specific sources
@@ -19,7 +22,7 @@ module ExternalImageSource
       @topic = topic
 
       # check persistant storage, use this if it exists
-      saved_image_tempfile = ExternalPersistentStorage.retrieve_image(@topic) # a Tempfile of an image
+      saved_image_tempfile = ExternalPersistentStorage.retrieve_file(@topic, EXTERNAL_STORAGE_FILENAME) # a Tempfile of an image
       if saved_image_tempfile.is_a?(Tempfile)
         best_source = Struct.new(:tempfile).new(
             saved_image_tempfile
@@ -38,8 +41,9 @@ module ExternalImageSource
         raise ArgumentError, "none of the external image sources returned a Tempfile for '#{@topic}'" if best_source.nil?
 
         # attempt to store the image Tempfile
-        ExternalPersistentStorage.save_image(
+        ExternalPersistentStorage.save_file(
           @topic,
+          EXTERNAL_STORAGE_FILENAME,
           best_source.tempfile
         )
       end
@@ -65,9 +69,17 @@ module ExternalImageSource
       @article = Wikipedia.find(topic.downcase) if @article.title.nil? || @article.text.nil?
       raise ArgumentError, "no Wikipedia article found for '#{@topic}'" if @article.title.nil?
       raise ArgumentError, "Wikipedia article '#{@article.title}' has no main image" if @article.main_image_url.nil?
-
+      # get the image URL
       @url      = @article.main_image_url
-      @tempfile = Down.download(@url) rescue nil
+      # download the image, convert to PNG and save to a tempfile
+      @tempfile = Tempfile.new([
+        EXTERNAL_STORAGE_FILENAME.split('.').first,
+        "." + EXTERNAL_STORAGE_FILENAME.split('.').last
+      ])
+      image = MiniMagick::Image.open(@url)
+      image.format "png"
+      # save image to instance variable
+      image.write(@tempfile.path)
     end
 
   end

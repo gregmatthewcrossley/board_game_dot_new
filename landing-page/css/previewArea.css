@@ -7,28 +7,20 @@ div#preview-area {
   height: 7rem;
 }
 
-img.preview-image {
-
-}
-
-img.preview-image.loading {
+div#preview-area > div.component.loading {
   background-color: blue;
 }
 
-img.preview-image.succeeded {
+div#preview-area > div.component.succeeded {
   background-color: green;
 }
 
-img.preview-image.failed {
+div#preview-area > div.component.failed {
   background-color: red;
 }
 
-div#preview-area > img.preview-image {
+div#preview-area > div.component > img {
   width: 11.11vw; /* 7 spaces, with a space to the left and right, equals 9 */
   height: 11.11vw;
 }
 
-div#preview-area > div#game-pieces > img.preview-image {
-  width: 10vw; /* 8 spaces, with a space to the left and right, equals 10 */
-  height: 10vw;
-}

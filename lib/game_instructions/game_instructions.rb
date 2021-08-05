@@ -3,11 +3,7 @@ class GameInstructions
   require_rel './pdf/game_instructions_pdf_generator.rb'
   include GameInstructionsPdfGenerator
 
-  # def initialize(analysis_result)
-  #   # validate the analysis_result
-  #   raise ArgumentError, "must pass an ExternalTextAnalyzer::AnalysisResult" unless analysis_result.is_a?(ExternalTextAnalyzer::AnalysisResult)
-  #   @analysis_result = analysis_result
-  # end
+  attr_reader :topic
 
   def initialize(topic)
     # validate the topic argument
@@ -15,12 +11,8 @@ class GameInstructions
     @topic = topic
   end
 
-  def preview_image
-    "foo bar" #TO-DO: make this an image
-  end
-
-  def generate
-    return self
+  def quantity
+    1
   end
 
 end
