@@ -120,7 +120,9 @@ const valid_components = [
 
 function gameComponentCreation(){
   statusMessage.textContent = 'making game components ...';
-  valid_components.forEach(previewGameComponent);
+  valid_components.forEach((component_name) => { 
+    previewGameComponent(component_name);
+  });
   // if (document.getElementsByClassName("example")) {
   //   statusMessage.textContent = "uh_oh, there was a problem creating one of the game components!";
   // } else {

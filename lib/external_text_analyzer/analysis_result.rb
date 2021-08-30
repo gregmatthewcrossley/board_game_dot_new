@@ -9,11 +9,34 @@ module ExternalTextAnalyzer
 
     attr_reader :sentences, :entities
 
-    def initialize(sentences, entities)
-      raise ArgumentError, 'sentences must be an array containing only Sentence(s)' unless sentences.is_a?(Array) && sentences.map { |s| s.is_a?(ExternalTextAnalyzer::Sentence) }.all?
-      @sentences = sentences
-      raise ArgumentError, 'entities must be an array containing only Entity(s)' unless entities.is_a?(Array) && entities.map { |s| s.is_a?(ExternalTextAnalyzer::Entity) }.all?
-      @entities = entities
+    def initialize(sentences = nil, entities = nil, hash: nil)
+      raise ArgumentError, "hash must be a Hash" unless hash.is_a?(Hash) || hash.nil?
+      if hash.is_a?(Hash) 
+        # if we're creating a new AnalysisResult from a hash (ie from persistant storage)
+        raise ArgumentError, "hash must have keys :sentences and :entities" unless hash.keys.include?(:entities) && hash.keys.include?(:sentences)
+        @sentences = hash[:sentences].map do |sentence_hash|
+          raise ArgumentError, "hash[:sentences] must be an array of Hashes with keys 'string' and 'sentiment'" unless sentence_hash["string"].is_a?(String) && sentence_hash["sentiment"].is_a?(Float)
+          Sentence.new(
+            sentence_hash["string"], 
+            sentence_hash["sentiment"]
+          )
+        end
+        @entities = hash[:entities].map do |entity_hash|
+          raise ArgumentError, "hash[:entities] must be an array of Hashes with keys 'string', 'salience', 'type' and 'is_proper'" unless entity_hash["string"].is_a?(String) && entity_hash["salience"].is_a?(Float) && entity_hash["type"].is_a?(String) && [true, false].include?(entity_hash["is_proper"])
+          Entity.new(
+            entity_hash["string"], 
+            entity_hash["salience"], 
+            entity_hash["type"].to_sym, 
+            entity_hash["is_proper"]
+          )
+        end
+      else
+        # or else if we're creating a new AnalysisResult the regular way
+        raise ArgumentError, 'sentences must be an array containing only Sentence(s)' unless sentences.is_a?(Array) && sentences.map { |s| s.is_a?(ExternalTextAnalyzer::Sentence) }.all?
+        @sentences = sentences
+        raise ArgumentError, 'entities must be an array containing only Entity(s)' unless entities.is_a?(Array) && entities.map { |s| s.is_a?(ExternalTextAnalyzer::Entity) }.all?
+        @entities = entities
+      end
     end
 
     def to_h

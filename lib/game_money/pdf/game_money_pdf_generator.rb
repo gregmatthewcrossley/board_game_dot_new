@@ -9,7 +9,10 @@ module GameMoneyPdfGenerator
 
   def build_pdf(prawn_document)
     super.tap do |p|
-      p.text "Placeholder #{self.class.name} PDF for #{@topic}"
+      quantity.times do
+        p.text "Money for #{@topic}", size: 36
+        p.start_new_page
+      end
     end
   end
 

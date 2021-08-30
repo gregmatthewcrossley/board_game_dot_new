@@ -20,11 +20,17 @@ ruby local_server.rb
 ```
 and then in your browser, go to `http://localhost:8000/`
 
-### To run a function locally
+### To run one specific function locally
 ```bash
 bundle exec functions-framework-ruby --target generate_preview_content
 ```
 and then in your browser, go to `http://localhost:8081?topic=Rob+Ford`
+
+### To run a web server and all functions locally (in the background):
+```bash
+./run_local_servers.sh
+```
+
 
 ## Production
 

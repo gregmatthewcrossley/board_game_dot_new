@@ -52,8 +52,8 @@ class QuestionCards
     }.reject { |card|  
       card.question.empty? ||                        # drop any cards with blank questions
       /#{BLANK_STRING}/.match(card.question).nil? || # drop any questions without blanks
-      card.choices.count != @number_of_choices       # drop any questions with not enough answers
-    }.take(@number_of_questions)
+      card.choices.count != NUMBER_OF_CHOICES        # drop any questions with not enough answers
+    }.take(NUMBER_OF_QUESTIONS)
     .shuffle
   end
 
@@ -82,7 +82,7 @@ class QuestionCards
     if entity.type == :DATE then
        plausable_date_substitutes(entity)
     else
-      all_entity_strings_except(entity).sample(@number_of_choices - 1)
+      all_entity_strings_except(entity).sample(NUMBER_OF_CHOICES - 1)
     end
   end
 
@@ -124,30 +124,30 @@ class QuestionCards
         .select { |d| d != date_string.to_i }
         .map(&:to_s)
         .uniq
-        .sample(@number_of_choices - 1)
+        .sample(NUMBER_OF_CHOICES - 1)
     when date_string_is_a_month_and_a_year
       Array.new(100)
         .map { |i| Date.parse(date_string) + rand(-PLAUSABLE_YEAR_RANGE*365..1) }
         .select { |d| d != Date.parse(date_string) }
         .map { |d| d.strftime("%B %Y") }
         .uniq
-        .sample(@number_of_choices - 1)
+        .sample(NUMBER_OF_CHOICES - 1)
     when date_string_is_a_month_and_a_day
       Array.new(100)
         .map { |i| Date.parse(date_string) + rand(-PLAUSABLE_YEAR_RANGE*365..1) }
         .select { |d| d != Date.parse(date_string) }
         .map { |d| d.strftime("%B %-d") }
         .uniq
-        .sample(@number_of_choices - 1)
+        .sample(NUMBER_OF_CHOICES - 1)
     when date_string_is_a_full_date
       Array.new(100)
         .map { |i| Date.parse(date_string) + rand(-PLAUSABLE_YEAR_RANGE*365..1) }
         .select { |d| d != Date.parse(date_string) }
         .map { |d| d.strftime("%B %-d, %Y") }
         .uniq
-        .sample(@number_of_choices - 1)
+        .sample(NUMBER_OF_CHOICES - 1)
     else
-      Date::MONTHNAMES.compact.sample(@number_of_choices - 1) # just return some random month names
+      Date::MONTHNAMES.compact.sample(NUMBER_OF_CHOICES - 1) # just return some random month names
     end
   end
 

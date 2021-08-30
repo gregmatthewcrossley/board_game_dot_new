@@ -52,7 +52,7 @@ class ChanceCards
       )
     }.sort { |a, b| # put the most interesting events first
       a.sentiment.abs <=> b.sentiment.abs
-    }.take(@number_of_chances)
+    }.take(NUMBER_OF_CHANCE_CARDS)
     .shuffle
   end
 

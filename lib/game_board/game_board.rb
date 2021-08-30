@@ -63,19 +63,19 @@ class GameBoard
     (1..PLACE_COUNT).map { |i| [i, :blank]}.to_h.tap do |place_map|
 
       # add chances
-      blank_place_indicies.sample(CHANCE_PLACE_COUNT).each do |i|
+      blank_place_indicies_for(place_map).sample(CHANCE_PLACE_COUNT).each do |i|
         place_map[i] = :chance
       end
 
       # add questions
-      blank_place_indicies.sample(QUESTION_PLACE_COUNT).each do |i|
+      blank_place_indicies_for(place_map).sample(QUESTION_PLACE_COUNT).each do |i|
         place_map[i] = :question
       end
 
       # add ladders
-      blank_place_indicies.sample(LADDER_PLACE_COUNT).each do |i|
+      blank_place_indicies_for(place_map).sample(LADDER_PLACE_COUNT).each do |i|
         place_map[i] = {
-          :ladder_to => blank_place_indicies.select { |j| 
+          :ladder_to => blank_place_indicies_for(place_map).select { |j| 
             (j - i) > TOO_CLOSE &&
             (j - i) < TOO_FAR
           }.sample
@@ -87,9 +87,9 @@ class GameBoard
       end
 
       # add chutes
-      blank_place_indicies.sample(CHUTE_PLACE_COUNT).each do |i|
+      blank_place_indicies_for(place_map).sample(CHUTE_PLACE_COUNT).each do |i|
         place_map[i] = {
-          :chute_to => blank_place_indicies.select { |j| 
+          :chute_to => blank_place_indicies_for(place_map).select { |j| 
             (i - j) > TOO_CLOSE &&
             (i - j) < TOO_FAR
           }.sample
@@ -105,8 +105,8 @@ class GameBoard
     end
   end
 
-  def blank_place_indicies
-    @place_map.select { |i, v| v == :blank}.map { |i, v| i }
+  def blank_place_indicies_for(place_map)
+    place_map.select { |i, v| v == :blank}.map { |i, v| i }
   end
 
 end

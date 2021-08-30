@@ -28,11 +28,16 @@ module GoogleCloudStorage
   def retrieve_file(topic, filename, public_pdf: false)
     validate_topic(topic)
     validate_filename(filename, public_pdf: public_pdf)
-    BUCKET_ACCESSOR_INSTANCE.find_file(
-      public_pdf ?
-        PUBLIC_PDF_BUCKET_PATH.call(topic, filename) : 
-        GAME_DATA_BUCKET_PATH.call(topic, filename)
-    )
+    google_cloud_storage_file = BUCKET_ACCESSOR_INSTANCE.find_file(
+        public_pdf ?
+          PUBLIC_PDF_BUCKET_PATH.call(topic, filename) : 
+          GAME_DATA_BUCKET_PATH.call(topic, filename)
+      )
+    return nil unless google_cloud_storage_file
+    Tempfile.new.tap do |f| 
+      f.write google_cloud_storage_file.download.read
+      f.rewind
+    end
   end
 
   def save_string(topic, filename, string)
@@ -48,7 +53,7 @@ module GoogleCloudStorage
     # retrieve the string file
     return nil unless string_file = retrieve_file(topic, filename)
     # read the string into a String
-    return string_file.download.read rescue nil
+    return string_file.read rescue nil
   end
   
   def save_hash(topic, filename, hash)
@@ -61,7 +66,7 @@ module GoogleCloudStorage
   def retrieve_hash(topic, filename)
     validate_topic(topic)
     validate_filename(filename)
-    JSON.parse(retrieve_string(topic, filename)) rescue nil
+    JSON.parse(retrieve_string(topic, filename)).transform_keys(&:to_sym) rescue nil
   end
 
 

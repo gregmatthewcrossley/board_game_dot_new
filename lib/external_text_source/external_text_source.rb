@@ -28,8 +28,11 @@ module ExternalTextSource
       @topic = topic
 
       # check persistant storage, use this if it exists
-      if saved_text_source = ExternalPersistentStorage.retrieve_string(@topic, EXTERNAL_STORAGE_FILENAME)
-        best_source = saved_text_source # a Struct that responds to :title, :source_text and :word_count
+      if saved_text_source_hash = ExternalPersistentStorage.retrieve_hash(@topic, EXTERNAL_STORAGE_FILENAME)
+        # set the accessor attributes
+        @title       = saved_text_source_hash[:title]
+        @source_text = saved_text_source_hash[:source_text]
+        @word_count  = saved_text_source_hash[:word_count]
       else
         # try to initialize each subclass
         all_sources = Any.all_source_classes.map do |klass|
@@ -43,18 +46,23 @@ module ExternalTextSource
         end.to_h
         best_source = sources_and_word_counts.key(sources_and_word_counts.values.max)
 
+        # set the accessor attributes
+        @title       = best_source.title
+        @source_text = best_source.source_text
+        @word_count  = best_source.word_count
+
         # attempt to store the text source
-        ExternalPersistentStorage.save_string(
+        ExternalPersistentStorage.save_hash(
           @topic, 
           EXTERNAL_STORAGE_FILENAME,
-          best_source.source_text
+          {
+            :title => best_source.title,
+            :source_text => best_source.source_text,
+            :word_count => best_source.word_count
+          }
         )
       end
-
-      # set the accessor attributes
-      @title       = best_source.title
-      @source_text = best_source.source_text
-      @word_count  = best_source.word_count
+      
     end
     
     def long_enough?

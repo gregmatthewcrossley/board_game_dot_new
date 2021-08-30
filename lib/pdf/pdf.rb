@@ -47,7 +47,7 @@ module Pdf # a parent class that manages the retrieval, storage and preview gene
   end
 
   def generate_pdf_preview(page = 1)
-    raise ArgumentError, 'page must be a positive Integer' unless page.is_a?(Integer) && page > 1
+    raise ArgumentError, 'page must be a positive Integer' unless page.is_a?(Integer) && page > 0
     # create a tempfile for the preview image
     Tempfile.new(
       [
@@ -55,12 +55,13 @@ module Pdf # a parent class that manages the retrieval, storage and preview gene
         "." + external_pdf_preview_filename(page).split('.').last
       ],
       binmode: true
-    ) do |f|
+    ).tap do |f|
       begin
         # open the given page of this PDF using MiniMagic::Image
         pdf_page = MiniMagick::Image
           .new(pdf.path)
-          .pages[page]
+          .pages[page - 1] # array index starts at 0, but page numbers start at 1
+        raise ArgumentError, "#{self.class.name}'s PDF for #{@topic} does not have a page #{page}" unless pdf_page
         # use MiniMagick::Tool::Convert to convert the pdf_page into an image
         # and save it to the preview image tempfile created above
         MiniMagick::Tool::Convert.new do |convert|
@@ -73,7 +74,7 @@ module Pdf # a parent class that manages the retrieval, storage and preview gene
         end
         f.open # refresh the preview image tempfile TO-DO: is this :open step neccesary? why does it 'refresh' and what does that mean? is this a quirk of imagemagic?
         # save this preview image tempfile for next time
-        ExternalPersistentStorage.save_pdf_preview(
+        ExternalPersistentStorage.save_file(
           @topic,
           external_pdf_preview_filename(page),
           f
@@ -83,7 +84,7 @@ module Pdf # a parent class that manages the retrieval, storage and preview gene
       ensure
         f.close 
       end
-    end
+    end # end Tempfile block
   end
 
   def build_pdf(prawn_document)

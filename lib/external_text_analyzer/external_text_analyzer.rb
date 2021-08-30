@@ -21,10 +21,14 @@ module ExternalTextAnalyzer
       @topic = topic
 
       # check persistant storage, use this if it exists
-      if saved_analysis_result = ExternalPersistentStorage.retrieve_hash(@topic, EXTERNAL_STORAGE_FILENAME) # an AnalysisResult
-        best_source = Struct.new(:analysis_result).new(
-            saved_analysis_result
+      if saved_analysis_result = AnalysisResult.new(
+          hash: ExternalPersistentStorage.retrieve_hash(
+            @topic, 
+            EXTERNAL_STORAGE_FILENAME
           )
+        )
+        # set the accessor attribute
+        @analysis_result = saved_analysis_result
       else
         # validate the source_text
         @source_text = ExternalTextSource::Any.new(@topic).source_text rescue nil
@@ -41,6 +45,10 @@ module ExternalTextAnalyzer
           s.analysis_result.is_a?(AnalysisResult)
         end.first
         raise ArgumentError, "none of the external analysis sources returned a AnalysisResult for '#{@topic}'" if best_source.nil?
+        
+        # set the accessor attribute
+        @analysis_result = best_source.analysis_result
+
         # attempt to store the AnalysisResult
         ExternalPersistentStorage.save_hash(
           @topic,
@@ -48,9 +56,7 @@ module ExternalTextAnalyzer
           best_source.analysis_result.to_h
         )
       end
-
-      # set the accessor attribute
-      @analysis_result = best_source.analysis_result
+      
     end
 
   end

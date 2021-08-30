@@ -104,7 +104,6 @@ FunctionsFramework.http("topic_analysis") do |request|
     topic = CGI.escape_html(request.params["topic"])
     # return 200 if the topic was analysed, 404 otherwise
     analysis = ExternalTextAnalyzer::Any.new(topic) rescue nil
-    binding.pry
     if analysis
       ::Rack::Response.new nil, 200
     else
@@ -128,7 +127,7 @@ FunctionsFramework.http("name_generation") do |request|
     # return 200 if a name and description was generated, 404 otherwise
     name_and_description = NameAndDescription.new(topic) rescue nil
     if name_and_description
-      ::Rack::Response.new name_and_description, 200
+      ::Rack::Response.new nil, 200
     else
       ::Rack::Response.new nil, 404
     end
@@ -152,7 +151,7 @@ FunctionsFramework.http("preview_component") do |request|
     raise ArgumentError, "component must be a non_empty string" unless component.is_a?(String) && component.length > 0
     raise ArgumentError, "component must be one of #{BoardGame.game_component_names.join(', ')}" unless BoardGame.game_component_names.include?(component)
     # sanitise the page number, or use the default page (page 1)
-    page = (CGI.escape_html(request.params["component"]).to_i rescue nil) || 1
+    page = (CGI.escape_html(request.params["page"]).to_i rescue nil) || 1
     raise ArgumentError, "page must be a positive Integer" unless page.is_a?(Integer) && page > 0
     # generate / retrieve a preview of the component
     component = BoardGame::GAME_COMPONENT_NAMES_AND_CLASSES[component].new(topic)
@@ -160,7 +159,7 @@ FunctionsFramework.http("preview_component") do |request|
       .pdf_preview(page)
       .open
       .read rescue nil
-    if component_preview_image_data
+    if component_preview_image_data && component_preview_image_data.length > 0
       # return the preview image data, along with a 20X header: 206 if there are more pages, 200 if there are no more pages
       ::Rack::Response.new component_preview_image_data, (component.quantity > page ? 206 : 200)
     else
