@@ -1,7 +1,7 @@
 class GamePieces
 
   require_rel '/pdf/game_pieces_pdf_generator.rb'
-  include GamePiecesPdfGenerator
+  prepend GamePiecesPdfGenerator
 
   NUMBER_OF_GAME_PIECES = 8
 

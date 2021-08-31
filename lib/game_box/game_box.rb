@@ -1,7 +1,7 @@
 class GameBox 
 
   require_rel './pdf/game_box_pdf_generator.rb'
-  include GameBoxPdfGenerator
+  prepend GameBoxPdfGenerator
 
   attr_reader :topic, :main_image
 

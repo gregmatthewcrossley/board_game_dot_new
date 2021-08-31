@@ -147,14 +147,15 @@ FunctionsFramework.http("preview_component") do |request|
     # sanitize the topic string provided by the user
     topic = CGI.escape_html(request.params["topic"])
     # sanitize the component string provided by the user
-    component = CGI.escape_html(request.params["component"])
-    raise ArgumentError, "component must be a non_empty string" unless component.is_a?(String) && component.length > 0
-    raise ArgumentError, "component must be one of #{BoardGame.game_component_names.join(', ')}" unless BoardGame.game_component_names.include?(component)
+    component_name = CGI.escape_html(request.params["component"])
+    raise ArgumentError, "component must be a non_empty string" unless component_name.is_a?(String) && component_name.length > 0
+    raise ArgumentError, "component must be one of #{BoardGame.game_component_names.join(', ')}" unless BoardGame.game_component_names.include?(component_name)
     # sanitise the page number, or use the default page (page 1)
     page = (CGI.escape_html(request.params["page"]).to_i rescue nil) || 1
     raise ArgumentError, "page must be a positive Integer" unless page.is_a?(Integer) && page > 0
-    # generate / retrieve a preview of the component
-    component = BoardGame::GAME_COMPONENT_NAMES_AND_CLASSES[component].new(topic)
+    # generate / retrieve a preview of the component    
+    component = BoardGame::GAME_COMPONENT_NAMES_AND_CLASSES[component_name]
+      .new(topic, use_existing_pdf: true)
     component_preview_image_data = component
       .pdf_preview(page)
       .open

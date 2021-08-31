@@ -1,8 +1,8 @@
 class QuestionCards
   require_rel '/pdf/question_cards_pdf_generator.rb'
-  include QuestionCardsPdfGenerator
+  prepend QuestionCardsPdfGenerator
 
-  NUMBER_OF_QUESTIONS = 100
+  NUMBER_OF_QUESTIONS = 5 # 100
   NUMBER_OF_CHOICES = 4
   MINIMUM_ENTITIES_FOR_A_SET = 50
   MINIMUM_SENTENCES_FOR_A_SET = 50

@@ -9,6 +9,7 @@ module GameBoxPdfGenerator
 
   def build_pdf(prawn_document)
     super.tap do |p|
+      p.image @main_image.path, width: 150
       p.text "Placeholder #{self.class.name} PDF for #{@topic}"
     end
   end

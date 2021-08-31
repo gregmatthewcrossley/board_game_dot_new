@@ -20,15 +20,13 @@ module ExternalTextAnalyzer
       raise ArgumentError, "must pass a topic (a non-empty String)" unless topic.is_a?(String) && !topic.empty?
       @topic = topic
 
-      # check persistant storage, use this if it exists
-      if saved_analysis_result = AnalysisResult.new(
-          hash: ExternalPersistentStorage.retrieve_hash(
-            @topic, 
-            EXTERNAL_STORAGE_FILENAME
-          )
+      # check persistant storage, use this if it exists    
+      if saved_analysis_result_hash = ExternalPersistentStorage.retrieve_hash(
+          @topic, 
+          EXTERNAL_STORAGE_FILENAME
         )
         # set the accessor attribute
-        @analysis_result = saved_analysis_result
+        @analysis_result = AnalysisResult.new(hash: saved_analysis_result_hash)
       else
         # validate the source_text
         @source_text = ExternalTextSource::Any.new(@topic).source_text rescue nil
@@ -69,7 +67,6 @@ module ExternalTextAnalyzer
     def initialize(text)
       raise ArgumentError, 'must pass text (String) when initializing' unless text.is_a?(String)
       @text = text
-
       # initiate Google Cloud Language client
       begin
         @client = Google::Cloud::Language.language_service

@@ -1,7 +1,7 @@
 class AssemblyInstructions
 
   require_rel './pdf/assembly_instructions_pdf_generator.rb'
-  include AssemblyInstructionsPdfGenerator
+  prepend AssemblyInstructionsPdfGenerator
 
   attr_reader :topic
 

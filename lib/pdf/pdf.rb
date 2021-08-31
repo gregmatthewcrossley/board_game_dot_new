@@ -1,5 +1,26 @@
 module Pdf # a parent class that manages the retrieval, storage and preview generation for PDFs
 
+  # here, we wrap the :initialize method from each component to allow us to skip
+  # the very time consuming step of retrieving and/or processing the component data
+  # if a finalized PDF already exists (and that's all we want, ie for previewing).
+  def initialize(topic, use_existing_pdf: false)
+    # validate the topic argument
+    raise ArgumentError, "must pass a topic (a non-empty String)" unless topic.is_a?(String) && !topic.empty?
+    @topic = topic
+    if use_existing_pdf
+      # validate the topic argument
+      raise ArgumentError, "must pass a topic (a non-empty String)" unless topic.is_a?(String) && !topic.empty?
+      @topic = topic
+      unless retrieve_pdf # unless a PDF exists already ...
+        warn "warning: the use_existing_pdf argument was set to true when this component was initialized, but no PDF exists yet. This argument will be ignored"
+        super(topic)
+      end
+    else
+      # call the regular :initialize method (taking the time to retrieve and/or processing the component data)
+      super(topic)
+    end
+  end
+
   def external_pdf_filename
     "Component#{self.class.name}.pdf"
   end
@@ -18,14 +39,14 @@ module Pdf # a parent class that manages the retrieval, storage and preview gene
   end
 
   def retrieve_pdf
-    ExternalPersistentStorage.retrieve_file(@topic, external_pdf_filename, public_pdf: self.class == BoardGame)
+    ExternalPersistentStorage.retrieve_file(@topic, external_pdf_filename, public_pdf: self.class == BoardGame) # will be public only if it is the main BoardGame PDF
   end
 
   def retrieve_pdf_preview(page = 1)
     ExternalPersistentStorage.retrieve_file(@topic, external_pdf_preview_filename(page))
   end
 
-  def generate_pdf(prawn_document = Prawn::Document.new)
+  def generate_pdf(prawn_document = Prawn::Document.new(:page_size => [3 * 72, 3 * 72]))
     raise ArgumentError, 'must pass a Prawn::Document' unless prawn_document.is_a?(Prawn::Document)
     Tempfile.new.tap do |f|
       begin
@@ -67,7 +88,7 @@ module Pdf # a parent class that manages the retrieval, storage and preview gene
         MiniMagick::Tool::Convert.new do |convert|
           convert.background 'white'
           convert.flatten
-          convert.density 300
+          convert.density 150
           convert.quality 95
           convert << pdf_page.path
           convert << f.path

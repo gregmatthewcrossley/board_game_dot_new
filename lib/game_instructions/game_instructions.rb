@@ -1,7 +1,7 @@
 class GameInstructions
 
   require_rel './pdf/game_instructions_pdf_generator.rb'
-  include GameInstructionsPdfGenerator
+  prepend GameInstructionsPdfGenerator
 
   attr_reader :topic
 

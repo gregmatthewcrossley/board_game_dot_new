@@ -1,7 +1,7 @@
 module GamePdfGenerator
 
   require_rel './pdf.rb'
-  include Pdf
+  prepend Pdf
 
 
   private

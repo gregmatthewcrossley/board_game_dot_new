@@ -76,10 +76,12 @@ module ExternalImageSource
         EXTERNAL_STORAGE_FILENAME.split('.').first,
         "." + EXTERNAL_STORAGE_FILENAME.split('.').last
       ])
-      image = MiniMagick::Image.open(@url)
-      image.format "png"
-      # save image to instance variable
-      image.write(@tempfile.path)
+      MiniMagick::Image.open(@url).tap do |image|
+        image.format "png" # change format to PNG (in case it is not already)
+        image.strip       # remove metadata
+        image.resize "75x75" # resize to a 150px square
+        image.write(@tempfile.path) # save image to instance variable
+      end
     end
 
   end

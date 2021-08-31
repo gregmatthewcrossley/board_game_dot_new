@@ -1,8 +1,8 @@
 class ChanceCards
   require_rel '/pdf/chance_cards_pdf_generator.rb'
-  include ChanceCardsPdfGenerator
+  prepend ChanceCardsPdfGenerator
   
-  NUMBER_OF_CHANCE_CARDS = 25
+  NUMBER_OF_CHANCE_CARDS = 5 # 25
   POSITIVE_CONSEQUENCE_LIST = [
       "Move forward * spaces.",
       "Take * dollars from the pot.",

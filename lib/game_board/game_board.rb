@@ -1,7 +1,7 @@
 class GameBoard
 
   require_rel './pdf/game_board_pdf_generator.rb'
-  include GameBoardPdfGenerator
+  prepend GameBoardPdfGenerator
 
   require 'terminal-table'
 

@@ -1,9 +1,9 @@
 class GameMoney
 
-  NUMBER_OF_MONEYS = 100
+  NUMBER_OF_MONEYS = 1 # the game will need many copies of the money component, but they're all identical
 
   require_rel './pdf/game_money_pdf_generator.rb'
-  include GameMoneyPdfGenerator
+  prepend GameMoneyPdfGenerator
 
   attr_reader :topic
 
