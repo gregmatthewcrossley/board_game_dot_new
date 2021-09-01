@@ -68,7 +68,7 @@ class ChanceCards
 
   def consequence_value(sentiment)
     raise ArgumentError, "sentiment must be a number between -1.0 and 1.0" unless (-1.0..1.0).include?(sentiment)
-    (CONSEQUENCE_RANGE*sentiment).round.to_i.abs.to_s
+    ((CONSEQUENCE_RANGE*sentiment).round.to_i.abs + 1).to_s
   end
 
 end

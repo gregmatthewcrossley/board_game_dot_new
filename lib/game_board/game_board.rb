@@ -28,15 +28,15 @@ class GameBoard
     1
   end
 
-  def print
-    table = ::Terminal::Table.new do |t|
+  def as_text
+    ::Terminal::Table.new do |t|
       square_root = Math.sqrt(@place_map.count).round
       rows = (1..square_root).map { |i| 
         ((square_root * (i-1))+1)..(square_root * i)
       }
       rows.each do |range|
         t.add_row @place_map.select { |k,v| 
-          range.include?(k)
+          range.include?(k.to_s.to_i) # the keys from @place_map are symbols like this: :"35" (because of the way they're stored as JSON)
         }.map { |k,v| 
           "#{k}\n\n#{v.to_s}"
         }
@@ -45,9 +45,7 @@ class GameBoard
         :all_separators => true, 
         :alignment => :center
       }
-    end
-    # print table to console
-    puts table
+    end.render
   end
 
 

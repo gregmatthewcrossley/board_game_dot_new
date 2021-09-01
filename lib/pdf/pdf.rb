@@ -46,18 +46,16 @@ module Pdf # a parent class that manages the retrieval, storage and preview gene
     ExternalPersistentStorage.retrieve_file(@topic, external_pdf_preview_filename(page))
   end
 
-  def generate_pdf(prawn_document = Prawn::Document.new(:page_size => [3 * 72, 3 * 72]))
-    raise ArgumentError, 'must pass a Prawn::Document' unless prawn_document.is_a?(Prawn::Document)
+  def generate_pdf
     Tempfile.new.tap do |f|
       begin
         # build the PDF and render it to this tempfile
-        f.write(build_pdf(prawn_document).render)
+        f.write(build_pdf.render) # build_pdf() is responded to by the component class first (for general PDF setup and content), which super's it back to this module, then back to the component class to add component specific content
         # attempt to store the PDF Tempfile for next time
         ExternalPersistentStorage.save_file(
           @topic,
           external_pdf_filename,
-          f,
-          public_pdf: self.class == BoardGame
+          f
         )
         # add a singleton method to this tempfile to allow it to be easily opened locally
         add_local_open_method

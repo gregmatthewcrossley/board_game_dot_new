@@ -53,7 +53,6 @@ cancelMakeButton.addEventListener('click', function() {
 
 // Download PDF
 function downloadPdf(){
-  debugger;
   window.location = makeButton.dataset.pdf_download_url;
 }
 

@@ -43,18 +43,12 @@ class BoardGame
     # save the topic attribute
     @topic = topic
 
-    # save the name/description attribute
-    @name_and_description = NameAndDescription.new(@topic)
+    # # save the name/description attribute
+    # @name_and_description = NameAndDescription.new(@topic)
 
     # initialize and save the game component attributes
     GAME_COMPONENT_NAMES_AND_CLASSES.each do |component_name, component_class|
       instance_variable_set("@#{component_name}", component_class.new(@topic))
-    end
-
-    # generate a random name and description
-    NameAndDescription.new(@topic).tap do |n|
-      @name = n.name
-      @description = n.description
     end
   
   end
