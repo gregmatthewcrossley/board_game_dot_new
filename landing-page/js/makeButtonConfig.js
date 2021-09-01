@@ -28,14 +28,17 @@ document.onkeydown = function(evt) {
 
 // 'Make' button
 makeButton.addEventListener('click', function() {
-  if (makeButton.dataset.state = 'ready') {
+  if (makeButton.dataset.state == 'ready') {
     // Style changes
+    clearPreviewArea();
     lockTopicInput();
     setButtonToWorking();
     showCancelMakeButton();
     // Game building functions
     buildGame();
     // Style changes
+  } else if (makeButton.dataset.state == 'done') {
+    downloadPdf();
   }
 });
 
@@ -45,12 +48,21 @@ cancelMakeButton.addEventListener('click', function() {
   unlockTopicInput();
   setButtonToReady();
   topicRefresh.click();
+  clearPreviewArea();
 });
 
-
+// Download PDF
+function downloadPdf(){
+  debugger;
+  window.location = makeButton.dataset.pdf_download_url;
+}
 
 
 // Style Functions
+function setButtonToReady(){
+  makeButton.dataset.state = 'ready';
+}
+
 function setButtonToWorking() {
   makeButton.dataset.state = 'working';
 }
@@ -70,6 +82,7 @@ function setButtonToFailed(){
   makeButton.dataset.state = 'failed';
 }
 
-function setButtonToReady(){
-  makeButton.dataset.state = 'ready';
+function setButtonToDone(url){
+  makeButton.dataset.state = 'done';
+  makeButton.dataset.pdf_download_url = url;
 }

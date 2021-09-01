@@ -18,6 +18,7 @@ gem 'date' # for generating plausable date substitutes
 gem 'i18n' # for activesupport-inflector
 gem 'activesupport-inflector', require: 'active_support/inflector' # for pluralization / singularization of nouns
 gem 'prawn' # for PDF generation
+gem 'combine_pdf' # for merging individual game component PDFs
 
 # for Google Cloud Functions, Storage and Error Reporting
 gem "functions_framework", "~> 0.9"

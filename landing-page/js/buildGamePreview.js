@@ -107,40 +107,47 @@ function nameGeneration() {
 
 // valid game component names (note that these match the component names
 // defined in the BoardGame class - see board_game.rb)
-const valid_components = [
-    'game_box',
-    'game_money',
-    'game_instructions',
+const component_names = [
     'assembly_instructions',
+    'game_box',
+    'game_instructions',
     'game_board',
+    'game_pieces',
+    'game_money',
     'question_cards',
-    'chance_cards',
-    'game_pieces'
+    'chance_cards'
   ];
 
 function gameComponentCreation(){
   statusMessage.textContent = 'making game components ...';
-  valid_components.forEach((component_name) => { 
-    previewGameComponent(component_name);
+
+  // initiate previews for all components
+  componentPreviewPromiseArray = [];
+  component_names.forEach((component_name) => { 
+    componentPreviewPromiseArray.push(previewGameComponent(component_name));
   });
-  // if (document.getElementsByClassName("example")) {
-  //   statusMessage.textContent = "uh_oh, there was a problem creating one of the game components!";
-  // } else {
-  //   statusMessage.textContent = 'All done!';
-  // }
+  // show the 'done' message when done
+  Promise.all(componentPreviewPromiseArray)
+  .then((values) => {
+    getAndShowPdfDownloadLink();
+  });
 }
 
 function previewGameComponent(component, page = 1){
+  // validate component name
   var topic = topicField.value;
-  if (typeof(component) !== 'string' || !valid_components.includes(component)) {
-    throw 'component must be type String and one of '+valid_components.join(', ');
+  if (typeof(component) !== 'string' || !component_names.includes(component)) {
+    throw 'component must be type String and one of '+component_names.join(', ');
   }
-  // send the topic and component to a google function to generate a preview
+  // prepare the preview request uri
   request_uri = '/functions/preview_component?topic='+encodeURIComponent(topic)+
     '&component='+encodeURIComponent(component)+
     '&page='+page;
-  document.getElementById(component).classList.add("loading"); 
-  fetch(request_uri)
+  // update the component's preview element
+  document.getElementById(component).classList.add("loading");
+  // send the topic and component to a google function to generate a preview
+  // return this promise
+  return fetch(request_uri)
     .then((response)=>{
       if (response.ok) {
         // update the preview img element's class to 'succeeded'
@@ -168,3 +175,43 @@ function previewGameComponent(component, page = 1){
       console.log(err);
     });
 }
+
+function clearPreviewArea(){
+  // for each child of element with id preview-area
+  Array.from(
+    document.getElementById('preview-area').children
+  ).forEach((item) => {
+    // remove the img element inside the div
+    while (item.firstChild) {
+      item.removeChild(item.lastChild);
+    }
+    // remove class loading, succeeded and failed
+    item.classList.remove('loading', 'succeeded', 'failed');
+  });
+}
+
+function getAndShowPdfDownloadLink(){
+  statusMessage.textContent = 'putting it all together ...';
+  // send the topic to a google function for analysis
+  var topic = topicField.value;
+  request_uri = '/functions/get_pdf_download_link?topic='+encodeURIComponent(topic);
+  fetch(request_uri)
+    .then(function (response) {
+      if (response.ok) {
+        return response.text();
+      } else {
+        throw new Error("get_pdf_download_link() didn't receive a 200 response");
+      }
+    })
+    .then((download_url_string)=>{
+      statusMessage.textContent = '';
+      unlockTopicInput();
+      setButtonToDone(download_url_string);
+    })
+    .catch(function (err) {
+      setButtonToFailed();
+      statusMessage.textContent = "hmm, '" + topic + "' cannot be put into a single PDF for some reason!";
+      console.log(err);
+    });
+}
+

@@ -16,7 +16,8 @@ FUNCTIONS = {
   '/functions/topic_image_check'      => "http://localhost:8004/",
   '/functions/topic_analysis'         => "http://localhost:8005/",
   '/functions/name_generation'        => "http://localhost:8006/",
-  '/functions/preview_component'      => "http://localhost:8007/"
+  '/functions/preview_component'      => "http://localhost:8007/",
+  '/functions/get_pdf_download_link'  => "http://localhost:8008/"
 }
 
 # serve all static files from the landing-page folder

@@ -8,6 +8,7 @@ class ExternalPersistentStorage
   #  - retrieve_hash(topic, filename)
   #  - save_file(topic, filename, tempfile, public_pdf)
   #  - retrieve_file(topic, filename, public_pdf)
+  #  - retrieve_public_pdf_url(topic, filename)
 
   require_relative './storage_services/google_cloud_storage.rb'
   CURRENT_STORAGE_SERVICE = GoogleCloudStorage

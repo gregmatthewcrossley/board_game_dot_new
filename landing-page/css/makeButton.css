@@ -32,22 +32,37 @@ button#make-button {
               transform 0.1s;
 }
 
+/* button content */
+button#make-button[data-state="ready"]::after {
+  content: "make";
+}
+button#make-button[data-state="done"]::after {
+  content: "download";
+}
+
+button#make-button[data-state="done"] {
+  max-width: 25rem;
+}
+
 button#make-button[data-state="ready"], 
 button#make-button[data-state="working"],
-button#make-button[data-state="failed"] {
+button#make-button[data-state="failed"],
+button#make-button[data-state="done"] {
 /*  font-size: 2rem;
   width: 25vw;
   height: 25vw;*/
   opacity: 1;
 }
 
-button#make-button[data-state="ready"]:hover {
+button#make-button[data-state="ready"]:hover,
+button#make-button[data-state="done"]:hover {
   cursor: pointer;
   box-shadow: 0.75rem 0.75rem 0.75rem 0rem #0000004a;
   transform: scale(1.05);
 }
 
-button#make-button[data-state="ready"]:active {
+button#make-button[data-state="ready"]:active, 
+button#make-button[data-state="done"]:active {
   cursor: pointer;
   box-shadow: 0.25rem 0.25rem 0.25rem 0rem #0000004a;
   transform: scale(0.95);
@@ -82,6 +97,15 @@ button#make-button[data-state="failed"] {
   font-size: 0;
   opacity: 0.5;
 }
+
+/*button#make-button[data-state="done"] {
+  cursor: wait;
+  background-image: url("/gif/mind_blown_1.gif");
+  background-size: 300px;
+  border-style: solid;
+  font-size: 0;
+  opacity: 0.5;
+}*/
 
 p#status {
   float: left;

@@ -20,6 +20,7 @@ topicField.addEventListener('input', function updateValue(e) {
 topicField.addEventListener('focus', function() {
   topicField.value = '';
   topicField.dataset.state = 'blank';
+  clearPreviewArea();
 });
 
 // click the make button when the user hits enter
@@ -47,6 +48,7 @@ fetch('/functions/topics')
     // refresh on click of the refresh button
     topicRefresh.addEventListener('click', function() {
       refreshTopic();
+      clearPreviewArea();
     });
     // refresh once after the page loads
     refreshTopic();

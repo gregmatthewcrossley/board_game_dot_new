@@ -172,7 +172,29 @@ FunctionsFramework.http("preview_component") do |request|
   end
 end
 
-
+# Generate a link to the consolidated game PDF
+# Local testing:
+#   export GOOGLE_APPLICATION_CREDENTIALS="/Users/gmc/Code/board_game_dot_new/google_application_credentials.json"
+#   bundle exec functions-framework-ruby --port 8008 --target get_pdf_download_link
+#   http://localhost:8008/
+FunctionsFramework.http("get_pdf_download_link") do |request|
+  begin # for error reporting
+    # sanitize the topic string provided by the user
+    topic = CGI.escape_html(request.params["topic"])
+    # generate / retrieve a preview of the component 
+    public_pdf_url = BoardGame.new(topic, use_existing_pdf: true).public_pdf_url rescue nil
+    # respond
+    if public_pdf_url
+      # return the preview image data, along with a 20X header: 206 if there are more pages, 200 if there are no more pages
+      ::Rack::Response.new public_pdf_url, 200
+    else
+      ::Rack::Response.new nil, 404
+    end
+  rescue StandardError => e
+    Google::Cloud::ErrorReporting.report e
+    ::Rack::Response.new nil, 500
+  end
+end
 
 
 # # Given game parameters (topic, player count, game length), returns 

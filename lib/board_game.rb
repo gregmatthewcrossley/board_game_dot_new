@@ -9,17 +9,17 @@ class BoardGame
   require_rel '../lib/**/*.rb'
   require 'date'
 
-  include GamePdfGenerator
+  prepend GamePdfGenerator
 
   GAME_COMPONENT_NAMES_AND_CLASSES = {
-    "game_box"              => GameBox,
-    "game_money"            => GameMoney,
-    "game_instructions"     => GameInstructions,
     "assembly_instructions" => AssemblyInstructions,
+    "game_box"              => GameBox,
+    "game_instructions"     => GameInstructions,
     "game_board"            => GameBoard,
+    "game_pieces"           => GamePieces,
+    "game_money"            => GameMoney,
     "question_cards"        => QuestionCards,
-    "chance_cards"          => ChanceCards,
-    "game_pieces"           => GamePieces
+    "chance_cards"          => ChanceCards
   }
 
   def self.game_component_names
@@ -30,86 +30,42 @@ class BoardGame
     GAME_COMPONENT_NAMES_AND_CLASSES.values
   end
 
-  attr_reader :topic, :name, :description, :download_key
+  # attribute reader methods
+  attr_reader :topic, 
+              :name_and_description,
+              *GAME_COMPONENT_NAMES_AND_CLASSES.keys.map(&:to_sym)
+              #:download_key
 
-  def initialize(topic, text: nil)
+  # instance methods
+  def initialize(topic)
     raise ArgumentError, 'must pass a topic (string) when initializing' unless topic.is_a?(String) && !topic.empty?
 
-    # save the topic
+    # save the topic attribute
     @topic = topic
+
+    # save the name/description attribute
+    @name_and_description = NameAndDescription.new(@topic)
+
+    # initialize and save the game component attributes
+    GAME_COMPONENT_NAMES_AND_CLASSES.each do |component_name, component_class|
+      instance_variable_set("@#{component_name}", component_class.new(@topic))
+    end
 
     # generate a random name and description
     NameAndDescription.new(@topic).tap do |n|
       @name = n.name
       @description = n.description
     end
-    
-    # save or retrieve the text content
-    BoardGame.log_elapsed_time_for("text retrieval for '#{@topic}'") do
-      @text ||= ExternalTextSource::WikipediaApi.new(@topic).text
-    end
-
-    # analyze the text
-    BoardGame.log_elapsed_time_for("text analysis for '#{@topic}'") do
-      @analyzed_text ||= ExternalTextAnalyzer::GoogleNaturalLanguage.new(@text).analysis
-    end
-
-    # save or retrieve the main image URL
-    BoardGame.log_elapsed_time_for("main image sourcing for '#{@topic}'") do
-      @main_image_url ||= ExternalImageSource::WikipediaApi.new(@topic).url
-    end
   
   end
 
-  def assembly_instructions
-    @assembly_instructions ||= AssemblyInstructions.new(@topic).generate
-  end
-
-  def game_board
-    @game_board ||= GameBoard.new(@analyzed_text).generate
-  end
-
-  def game_box
-    @game_box ||= GameBox.new(@main_image_url).generate
-  end
-
-  def question_cards
-    @question_cards ||= QuestionCards.new(@analyzed_text).generate
-  end
-
-  def chance_cards
-    @chance_cards ||= ChanceCards.new(@analyzed_text).generate
-  end
-
-  def game_instructions
-    @game_instructions ||= GameInstructions.new(@analyzed_text).generate
-  end
-
-  def game_money
-    @game_money ||= GameMoney.new(@topic).generate
-  end
-
-  def game_pieces
-    @game_pieces ||= GamePieces.new(@analyzed_text).generate
-  end 
-
-  def generate
-    # generates all game content
-    BoardGame.game_component_names.each do |game_component_name|
-      # BoardGame.log_elapsed_time_for("#{component} generation for '#{@topic}'") do
-        send game_component_name
-      # end
-    end
-    return self
-  end
-
-  def self.log_elapsed_time_for(description)
-    # raise ArgumentError, "description must be a String" unless description.is_a?(String)
-    # starting = Process.clock_gettime(Process::CLOCK_MONOTONIC)
-    yield
-    # ending = Process.clock_gettime(Process::CLOCK_MONOTONIC)
-    # elapsed = ending - starting
-    # puts "#{elapsed.round(1)}s".ljust(8) +"#{description}."
-  end
+  # def self.log_elapsed_time_for(description)
+  #   # raise ArgumentError, "description must be a String" unless description.is_a?(String)
+  #   # starting = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+  #   yield
+  #   # ending = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+  #   # elapsed = ending - starting
+  #   # puts "#{elapsed.round(1)}s".ljust(8) +"#{description}."
+  # end
 
 end

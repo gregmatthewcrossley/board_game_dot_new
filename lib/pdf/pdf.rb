@@ -1,5 +1,8 @@
 module Pdf # a parent class that manages the retrieval, storage and preview generation for PDFs
 
+  require_rel './local_open.rb'
+  prepend LocalOpen
+
   # here, we wrap the :initialize method from each component to allow us to skip
   # the very time consuming step of retrieving and/or processing the component data
   # if a finalized PDF already exists (and that's all we want, ie for previewing).
@@ -8,9 +11,6 @@ module Pdf # a parent class that manages the retrieval, storage and preview gene
     raise ArgumentError, "must pass a topic (a non-empty String)" unless topic.is_a?(String) && !topic.empty?
     @topic = topic
     if use_existing_pdf
-      # validate the topic argument
-      raise ArgumentError, "must pass a topic (a non-empty String)" unless topic.is_a?(String) && !topic.empty?
-      @topic = topic
       unless retrieve_pdf # unless a PDF exists already ...
         warn "warning: the use_existing_pdf argument was set to true when this component was initialized, but no PDF exists yet. This argument will be ignored"
         super(topic)
@@ -114,21 +114,5 @@ module Pdf # a parent class that manages the retrieval, storage and preview gene
       # anything you want at the start of all components, add here!
     end
   end
-
-
-  # Private methods
-
-  def add_local_open_method
-    define_singleton_method(
-      :open,
-      Proc.new do
-        render_file(path_and_pdf_filename)
-        self.open
-        self.rewind
-        system "open #{self.path}"
-      end
-    )
-  end
-  # # private_class_method :add_local_open_method
 
 end

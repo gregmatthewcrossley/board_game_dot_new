@@ -14,15 +14,17 @@ module GoogleCloudStorage
 
   def save_file(topic, filename, tempfile, public_pdf: false)
     validate_topic(topic)
-    validate_filename(filename)
     validate_filename(filename, public_pdf: public_pdf)
     BUCKET_ACCESSOR_INSTANCE.upload_file(
       tempfile,
       public_pdf ?
         PUBLIC_PDF_BUCKET_PATH.call(topic, filename) : 
         GAME_DATA_BUCKET_PATH.call(topic, filename),
-      acl: "projectPrivate"
-    )
+      acl: (public_pdf ? "publicRead" : "projectPrivate") # this doesn't seem to make the PDF public when it is supposed to... TO-DO
+    ).tap do |f|
+      # make the PDF public, if public_pdf is set to true
+      f.acl.public! if public_pdf
+    end
   end
 
   def retrieve_file(topic, filename, public_pdf: false)
@@ -38,6 +40,12 @@ module GoogleCloudStorage
       f.write google_cloud_storage_file.download.read
       f.rewind
     end
+  end
+
+  def retrieve_public_pdf_url(topic, filename)
+    BUCKET_ACCESSOR_INSTANCE.find_file(
+      PUBLIC_PDF_BUCKET_PATH.call(topic, filename)
+    ).public_url rescue nil
   end
 
   def save_string(topic, filename, string)
